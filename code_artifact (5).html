@@ -1,0 +1,1124 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>聲音探索器 (穩定升級版)</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons CDN -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- MediaPipe Hands CDN (只保留核心偵測庫，相機改由原生 HTML5 控制以提升穩定性) -->
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous"></script>
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            dark: '#090D1A',
+                            card: '#131A2E',
+                            accent: '#6366F1',
+                            neonPink: '#EC4899',
+                            neonCyan: '#06B6D4',
+                            neonGreen: '#10B981',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* 隱藏原生相機元件，只展示 Canvas 鏡像 */
+        #webcam {
+            transform: scaleX(-1);
+            display: none;
+        }
+        #canvas {
+            transform: scaleX(-1);
+        }
+        /* 微光動畫 */
+        @keyframes pulse-glow {
+            0%, 100% { opacity: 0.6; box-shadow: 0 0 15px rgba(6, 182, 212, 0.2); }
+            50% { opacity: 1; box-shadow: 0 0 25px rgba(6, 182, 212, 0.6); }
+        }
+        .pulse-active {
+            animation: pulse-glow 2s infinite;
+        }
+    </style>
+</head>
+<body class="bg-brand-dark text-slate-100 min-h-screen font-sans flex flex-col justify-between">
+
+    <!-- 頂部導航欄 -->
+    <header class="border-b border-slate-800 bg-brand-dark/90 backdrop-blur sticky top-0 z-50 px-4 py-3">
+        <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
+            <div class="flex items-center gap-3">
+                <!-- 專屬品牌 Logo -->
+                <div class="relative h-14 w-14 rounded-full overflow-hidden border-2 border-brand-neonCyan bg-white flex items-center justify-center shrink-0 shadow-lg shadow-cyan-500/20">
+                    <img src="WhatsApp Image 2026-05-27 at 11.01.24 AM.jpeg" alt="Miss Ho's Music Lab" class="h-full w-full object-cover" onerror="this.onerror=null; this.src='https://placehold.co/100x100/131A2E/06B6D4?text=Miss+Ho';">
+                </div>
+                <div>
+                    <h1 class="text-xl md:text-2xl font-bold bg-gradient-to-r from-brand-neonCyan via-brand-accent to-brand-neonPink bg-clip-text text-transparent">
+                        聲音探索器
+                    </h1>
+                    <p class="text-xs text-slate-400">音樂與科技互動課堂 · 認識音高 (Pitch) 與調變 (Modulation)</p>
+                </div>
+            </div>
+            
+            <!-- 隱私與安全提示 -->
+            <div class="flex items-center gap-2 px-3 py-1.5 bg-slate-800/60 rounded-full border border-slate-700 max-w-sm text-center md:text-left">
+                <i data-lucide="shield-check" class="w-4 h-4 text-brand-neonGreen shrink-0"></i>
+                <span class="text-[10px] md:text-xs text-slate-300">
+                    影像僅作本機即時手勢分析，絕對不會上傳、儲存或錄影。
+                </span>
+            </div>
+        </div>
+    </header>
+
+    <!-- 主體內容區 (鏡頭畫面放大為 8 欄，控制區縮為 4 欄) -->
+    <main class="max-w-7xl mx-auto p-4 w-full grid grid-cols-1 lg:grid-cols-12 gap-6 flex-grow">
+        
+        <!-- 左欄：相機偵測及影像顯示 (佔 8 欄) -->
+        <div class="lg:col-span-8 flex flex-col gap-4">
+            
+            <!-- 視訊畫面容器 -->
+            <div class="relative bg-brand-card border border-slate-800 rounded-2xl overflow-hidden aspect-video flex flex-col items-center justify-center shadow-2xl">
+                <!-- 原生 Video 標籤 -->
+                <video id="webcam" autoplay playsinline muted></video>
+                <!-- 繪製骨架的 Canvas (實際畫面) -->
+                <canvas id="canvas" class="absolute inset-0 w-full h-full object-cover"></canvas>
+
+                <!-- 狀態引導覆蓋遮罩 -->
+                <div id="camera-placeholder" class="absolute inset-0 bg-brand-card/95 flex flex-col items-center justify-center p-6 text-center z-10">
+                    <!-- 載入與提示 Icon -->
+                    <div id="placeholder-icon" class="w-20 h-20 rounded-full bg-slate-800 flex items-center justify-center text-brand-neonCyan mb-4">
+                        <i data-lucide="camera" class="w-10 h-10"></i>
+                    </div>
+                    
+                    <h3 id="placeholder-title" class="text-lg font-bold text-white mb-2">準備好開始您的音樂魔法了嗎？</h3>
+                    <p id="placeholder-desc" class="text-slate-400 text-sm max-w-md mb-6">
+                        第一步：請先解鎖音訊，再點擊下方「啟動相機」授權鏡頭。
+                    </p>
+                    
+                    <!-- 互動控制核心按鈕 (防呆與嚴格點擊驅動) -->
+                    <div class="flex flex-col sm:flex-row gap-3 z-20">
+                        <!-- 音訊優先解鎖按鈕 -->
+                        <button id="btn-audio-unlock" onclick="unlockAudioSystem()" class="px-6 py-3 bg-brand-neonPink hover:bg-pink-600 text-white font-bold rounded-xl transition duration-200 flex items-center justify-center gap-2 shadow-lg shadow-pink-500/20">
+                            <i data-lucide="volume-2" class="w-5 h-5"></i>
+                            步驟 1：啟動並解鎖聲音
+                        </button>
+                        
+                        <!-- 相機啟動按鈕 -->
+                        <button id="btn-camera-start" onclick="initCameraStream()" class="px-6 py-3 bg-slate-800 text-slate-400 font-semibold rounded-xl transition duration-200 flex items-center justify-center gap-2 cursor-not-allowed" disabled>
+                            <i data-lucide="video" class="w-5 h-5"></i>
+                            步驟 2：啟動相機感應
+                        </button>
+                    </div>
+
+                    <!-- 免鏡頭備用選項 -->
+                    <button onclick="enableSimulatedControl()" class="mt-4 text-xs text-brand-neonCyan hover:underline flex items-center gap-1">
+                        <i data-lucide="mouse-pointer-click" class="w-3.5 h-3.5"></i> 教室沒有鏡頭？改用滑鼠/觸控板模擬
+                    </button>
+                </div>
+
+                <!-- 模擬控制觸控板 (當沒有相機或手勢啟動時作為備用) -->
+                <div id="simulation-pad" class="absolute inset-0 bg-slate-950/95 hidden z-20 flex-col p-4">
+                    <div class="flex items-center justify-between border-b border-slate-800 pb-2 mb-2">
+                        <span class="text-xs font-bold text-brand-neonCyan flex items-center gap-1">
+                            <i data-lucide="mouse-pointer" class="w-3.5 h-3.5"></i> 手勢模擬觸控板 (點擊並拖曳)
+                        </span>
+                        <button onclick="disableSimulatedControl()" class="text-xs text-slate-400 hover:text-white underline">
+                            返回相機模式
+                        </button>
+                    </div>
+                    <div id="touch-zone" class="flex-grow bg-slate-900 rounded-xl border border-dashed border-slate-700 relative overflow-hidden cursor-crosshair flex items-center justify-center text-center">
+                        <div class="pointer-events-none text-slate-500 text-xs p-4 leading-relaxed">
+                            <p class="font-bold text-slate-300 text-sm mb-1">【滑鼠/觸控板 備用控制模式】</p>
+                            <p>點擊並上下滑動：改變「音高 Pitch」</p>
+                            <p>快速在左右兩側搖晃：改變「調變 Modulation (顫音)」</p>
+                        </div>
+                        <div id="simulated-pointer" class="absolute w-8 h-8 rounded-full border-2 border-brand-neonCyan bg-brand-neonCyan/20 pointer-events-none hidden"></div>
+                    </div>
+                </div>
+
+                <!-- 狀態提示框 -->
+                <div id="tracking-status" class="absolute top-4 left-4 bg-slate-900/90 backdrop-blur border border-slate-700 px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-2 z-10 hidden">
+                    <span id="status-ping" class="w-2 h-2 rounded-full bg-brand-neonGreen"></span>
+                    <span id="tracking-text" class="text-slate-300">系統準備中...</span>
+                </div>
+
+                <!-- 簡易教學懸浮框 (排版與提示字眼完全跟隨學生的左右方位) -->
+                <div class="absolute bottom-4 left-4 right-4 bg-slate-900/80 backdrop-blur border border-slate-800 p-3 rounded-xl flex items-center justify-between text-xs text-slate-300 gap-4 z-10">
+                    <!-- 左半邊提示（對應學生左手）：控制 Modulation -->
+                    <div class="flex items-center gap-2">
+                        <span class="px-2 py-0.5 bg-brand-neonPink/20 text-brand-neonPink rounded font-bold">左手</span>
+                        <span>左右擺動快慢控制 <strong class="text-white">調變 Modulation</strong></span>
+                    </div>
+                    <!-- 中央分割線 -->
+                    <div class="h-4 w-[1px] bg-slate-700"></div>
+                    <!-- 右半邊提示（對應學生右手）：控制 Pitch -->
+                    <div class="flex items-center gap-2">
+                        <span class="px-2 py-0.5 bg-brand-neonCyan/20 text-brand-neonCyan rounded font-bold">右手</span>
+                        <span>高低控制 <strong class="text-white">音高 Pitch</strong> (手越高、音越高)</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 控制按鈕列 -->
+            <div class="bg-brand-card border border-slate-800 p-4 rounded-2xl grid grid-cols-2 sm:grid-cols-4 gap-3">
+                <button id="btn-sound-toggle" onclick="toggleSound()" class="py-3 px-4 bg-slate-800 text-slate-500 font-bold rounded-xl transition duration-200 flex items-center justify-center gap-2" disabled>
+                    <i data-lucide="play" class="w-5 h-5"></i>
+                    <span>聲音未解鎖</span>
+                </button>
+                
+                <button onclick="resetSystem()" class="py-3 px-4 bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold rounded-xl transition duration-200 flex items-center justify-center gap-2">
+                    <i data-lucide="rotate-ccw" class="w-5 h-5"></i>
+                    <span>重設設定</span>
+                </button>
+
+                <div class="col-span-2 relative">
+                    <select id="synth-select" onchange="changeSynth(this.value)" class="w-full h-full py-3 px-4 bg-slate-900 border border-slate-700 rounded-xl text-slate-200 font-medium focus:ring-2 focus:ring-brand-accent focus:outline-none cursor-pointer appearance-none">
+                        <option value="sine">🎵 經典純音 (正弦波 Sine)</option>
+                        <option value="square">👾 電玩世界 (方波 Square)</option>
+                        <option value="sawtooth">🎸 搖滾電吉他 (鋸齒波 Sawtooth)</option>
+                        <option value="robot">🤖 金屬機械人 (環形調變 Robot)</option>
+                        <option value="space">🌌 科幻外太空 (延遲回聲 Space)</option>
+                    </select>
+                    <div class="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
+                        <i data-lucide="chevron-down" class="w-4 h-4"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 右欄：聲音狀態與實時示波器 (佔 4 欄) -->
+        <div class="lg:col-span-4 flex flex-col gap-6">
+            
+            <!-- 示波器圖表區 -->
+            <div class="bg-brand-card border border-slate-800 p-4 rounded-2xl shadow-xl flex flex-col">
+                <div class="flex items-center justify-between mb-3">
+                    <h3 class="text-sm font-bold text-slate-400 uppercase tracking-wider flex items-center gap-2">
+                        <i data-lucide="activity" class="w-4 h-4 text-brand-neonCyan"></i> 聲音實時波形 (示波器)
+                    </h3>
+                    <span id="visualizer-type" class="text-[10px] bg-slate-800 text-slate-300 px-2 py-0.5 rounded-full font-mono">
+                        Time Domain
+                    </span>
+                </div>
+                <div class="bg-slate-950 border border-slate-800 rounded-xl p-1 aspect-[16/8] relative overflow-hidden flex items-center justify-center">
+                    <canvas id="oscillator-canvas" class="w-full h-full"></canvas>
+                    <div id="sound-off-overlay" class="absolute inset-0 bg-slate-950/90 flex items-center justify-center text-slate-500 text-xs">
+                        請點擊步驟 1 啟動聲音，並在下方按下「啟動聲音」
+                    </div>
+                </div>
+            </div>
+
+            <!-- 控制儀表板 (Pitch & Modulation) -->
+            <div class="bg-brand-card border border-slate-800 p-5 rounded-2xl flex-grow flex flex-col gap-5 justify-center">
+                <h3 class="text-sm font-bold text-slate-400 uppercase tracking-wider flex items-center gap-2 mb-1">
+                    <i data-lucide="sliders" class="w-4 h-4 text-brand-neonPink"></i> 音頻調變控制面板
+                </h3>
+
+                <!-- 音高控制回饋 (Pitch) -->
+                <div class="bg-slate-900/60 p-4 rounded-xl border border-slate-800/80 relative overflow-hidden">
+                    <div class="flex justify-between items-start mb-2">
+                        <div>
+                            <span class="text-xs text-slate-400 font-bold">音高 PITCH (頻率)</span>
+                            <div class="text-2xl font-black text-brand-neonCyan font-mono mt-0.5">
+                                <span id="val-pitch">---</span> <span class="text-sm font-medium text-slate-500">Hz</span>
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <span class="text-xs text-slate-400 font-bold">音符音高參考</span>
+                            <div id="val-note" class="text-sm font-semibold text-slate-300 font-mono mt-1">---</div>
+                        </div>
+                    </div>
+                    <!-- 音高條軌道 (Pitch Bar) -->
+                    <div class="h-4 bg-slate-950 rounded-full overflow-hidden relative border border-slate-800">
+                        <div id="bar-pitch" class="h-full bg-gradient-to-r from-brand-accent to-brand-neonCyan w-0 transition-all duration-75"></div>
+                    </div>
+                    <div class="flex justify-between text-[10px] text-slate-500 mt-1.5 font-mono">
+                        <span>低音 (200 Hz)</span>
+                        <span>中音 (500 Hz)</span>
+                        <span>高音 (1000 Hz)</span>
+                    </div>
+                </div>
+
+                <!-- 波動調變回饋 (Modulation / LFO) -->
+                <div class="bg-slate-900/60 p-4 rounded-xl border border-slate-800/80">
+                    <div class="flex justify-between items-start mb-2">
+                        <div>
+                            <span class="text-xs text-slate-400 font-bold">調變強度 MODULATION (波動快慢)</span>
+                            <div class="text-2xl font-black text-brand-neonPink font-mono mt-0.5">
+                                <span id="val-mod-speed">---</span> <span class="text-sm font-medium text-slate-500">Hz</span>
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <span class="text-xs text-slate-400 font-bold">調變幅度</span>
+                            <div id="val-mod-depth" class="text-sm font-semibold text-brand-neonPink font-mono mt-1">---</div>
+                        </div>
+                    </div>
+                    <!-- 調變條軌道 -->
+                    <div class="h-4 bg-slate-950 rounded-full overflow-hidden relative border border-slate-800">
+                        <div id="bar-mod" class="h-full bg-gradient-to-r from-pink-500 to-rose-400 w-0 transition-all duration-75"></div>
+                    </div>
+                    <div class="flex justify-between text-[10px] text-slate-500 mt-1.5 font-mono">
+                        <span>穩定 (0 Hz)</span>
+                        <span>微顫 (5 Hz)</span>
+                        <span>激震 (15 Hz)</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- 下方區塊：課堂分組創意活動 & 學習指引 -->
+    <section class="max-w-7xl mx-auto p-4 w-full border-t border-slate-800/80 mt-4">
+        <div class="bg-brand-card/60 backdrop-blur rounded-2xl p-6 border border-slate-800">
+            <div class="flex items-center gap-2 mb-4">
+                <i data-lucide="users" class="w-5 h-5 text-brand-neonCyan"></i>
+                <h2 class="text-lg font-bold text-white">創意聲音劇場分組任務</h2>
+                <span class="text-xs bg-brand-accent/20 text-indigo-300 px-2.5 py-1 rounded-full font-medium">小組合作卡</span>
+            </div>
+            
+            <p class="text-sm text-slate-300 mb-6 max-w-4xl leading-relaxed">
+                與你的小組組員一起挑選一個以下情境！每個人扮演一種角色，用雙手動作控制聲音：
+            </p>
+
+            <!-- 情境選擇卡片 (左右手描述同步更新) -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+                <div onclick="selectScenario('space')" class="group border border-slate-800 bg-slate-900/40 hover:bg-slate-800/50 hover:border-brand-neonCyan/40 p-4 rounded-xl cursor-pointer transition duration-300">
+                    <div class="flex justify-between items-start mb-2">
+                        <span class="p-2 bg-indigo-500/10 text-indigo-400 rounded-lg group-hover:scale-110 transition duration-200">
+                            <i data-lucide="rocket" class="w-5 h-5"></i>
+                        </span>
+                        <span class="text-[10px] text-indigo-400 font-bold border border-indigo-400/20 px-1.5 py-0.5 rounded">科幻太空</span>
+                    </div>
+                    <h4 class="font-bold text-white text-sm mb-1">太空奇妙探險</h4>
+                    <p class="text-xs text-slate-400 leading-normal">
+                        利用「太空聲音」，右手製造升空與降落的音高，左手劇烈擺動模擬遭遇小行星亂流的干擾聲！
+                    </p>
+                </div>
+
+                <div onclick="selectScenario('zoo')" class="group border border-slate-800 bg-slate-900/40 hover:bg-slate-800/50 hover:border-brand-neonPink/40 p-4 rounded-xl cursor-pointer transition duration-300">
+                    <div class="flex justify-between items-start mb-2">
+                        <span class="p-2 bg-pink-500/10 text-pink-400 rounded-lg group-hover:scale-110 transition duration-200">
+                            <i data-lucide="paw-print" class="w-5 h-5"></i>
+                        </span>
+                        <span class="text-[10px] text-pink-400 font-bold border border-pink-400/20 px-1.5 py-0.5 rounded">瘋狂動物</span>
+                    </div>
+                    <h4 class="font-bold text-white text-sm mb-1">野生動物大合唱</h4>
+                    <p class="text-xs text-slate-400 leading-normal">
+                        扮演奇異怪鳥（超高音）或威猛獅子（低音），右手高舉或下放，左手快速揮動改變叫聲中的驚慌與憤怒程度！
+                    </p>
+                </div>
+
+                <div onclick="selectScenario('factory')" class="group border border-slate-800 bg-slate-900/40 hover:bg-slate-800/50 hover:border-brand-neonGreen/40 p-4 rounded-xl cursor-pointer transition duration-300">
+                    <div class="flex justify-between items-start mb-2">
+                        <span class="p-2 bg-emerald-500/10 text-emerald-400 rounded-lg group-hover:scale-110 transition duration-200">
+                            <i data-lucide="cpu" class="w-5 h-5"></i>
+                        </span>
+                        <span class="text-[10px] text-emerald-400 font-bold border border-emerald-400/20 px-1.5 py-0.5 rounded">機械工廠</span>
+                    </div>
+                    <h4 class="font-bold text-white text-sm mb-1">故障的巨型機械</h4>
+                    <p class="text-xs text-slate-400 leading-normal">
+                        選用「機械人聲音」，將右手固定在某高度發出高頻電波，左手快慢交替，表現機械運轉與卡住的節奏！
+                    </p>
+                </div>
+
+                <div onclick="selectScenario('weather')" class="group border border-slate-800 bg-slate-900/40 hover:bg-slate-800/50 hover:border-brand-neonCyan/40 p-4 rounded-xl cursor-pointer transition duration-300">
+                    <div class="flex justify-between items-start mb-2">
+                        <span class="p-2 bg-cyan-500/10 text-cyan-400 rounded-lg group-hover:scale-110 transition duration-200">
+                            <i data-lucide="cloud-lightning" class="w-5 h-5"></i>
+                        </span>
+                        <span class="text-[10px] text-cyan-400 font-bold border border-cyan-400/20 px-1.5 py-0.5 rounded">自然氣象</span>
+                    </div>
+                    <h4 class="font-bold text-white text-sm mb-1">暴風雨和閃電</h4>
+                    <p class="text-xs text-slate-400 leading-normal">
+                        雙手配合！右手緩慢上下移動代表狂風的呼嘯，左手快速劇烈顫動模擬雷電在空中閃爍和撕裂的音效。
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 頁尾說明 -->
+    <footer class="bg-slate-950 border-t border-slate-900 py-4 px-6 text-center text-xs text-slate-500">
+        <div class="max-w-7xl mx-auto flex justify-center gap-4">
+            <!-- 互動彈出視窗按鈕 (完全居中對齊，剔除原課件介紹文字) -->
+            <button onclick="toggleModal('modal-pitch-info', true)" class="hover:text-brand-neonCyan transition font-semibold flex items-center gap-1.5 text-slate-400">
+                <i data-lucide="book-open" class="w-3.5 h-3.5"></i> 音高原理介紹
+            </button>
+            <span class="text-slate-800 select-none">|</span>
+            <button onclick="toggleModal('modal-mod-info', true)" class="hover:text-brand-neonPink transition font-semibold flex items-center gap-1.5 text-slate-400">
+                <i data-lucide="waves" class="w-3.5 h-3.5"></i> 調變機制探討
+            </button>
+        </div>
+    </footer>
+
+    <!-- ========================================== -->
+    <!-- 彈出視窗 1：音高原理介紹 Modal -->
+    <!-- ========================================== -->
+    <div id="modal-pitch-info" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm hidden">
+        <div class="bg-brand-card border border-slate-800 rounded-2xl max-w-lg w-full overflow-hidden shadow-2xl animate-in fade-in zoom-in-95 duration-200">
+            <!-- 視窗頭部 -->
+            <div class="px-6 py-4 border-b border-slate-800 flex items-center justify-between bg-slate-900/50">
+                <div class="flex items-center gap-2 text-brand-neonCyan">
+                    <i data-lucide="music" class="w-5 h-5"></i>
+                    <h3 class="font-bold text-white text-base">什麼是音高 (Pitch)？</h3>
+                </div>
+                <button onclick="toggleModal('modal-pitch-info', false)" class="text-slate-400 hover:text-white transition">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            <!-- 視窗內容 -->
+            <div class="p-6 space-y-4 text-sm text-slate-300 leading-relaxed max-h-[70vh] overflow-y-auto">
+                <p>
+                    在音樂中，**音高 (Pitch)** 指的是聲音聽起來的「高」或「低」。
+                </p>
+                <div class="bg-slate-900 p-4 rounded-xl border border-slate-800 space-y-2">
+                    <h4 class="font-bold text-brand-neonCyan text-xs flex items-center gap-1">
+                        <i data-lucide="activity" class="w-4 h-4"></i> 科學原理：振動頻率
+                    </h4>
+                    <p class="text-xs">
+                        聲音是由物體振動產生的波。物體振動得**越快**，產生的聲波就越密集，**頻率 (Frequency)** 就越高，聽起來就是「高音」；相反地，振動得**越慢**，波形越寬鬆，頻率越低，聽起來就是「低音」。
+                    </p>
+                </div>
+                <!-- 示意圖 -->
+                <div class="grid grid-cols-2 gap-3 text-center text-xs">
+                    <div class="bg-slate-950 p-3 rounded-lg border border-slate-900">
+                        <span class="text-brand-neonCyan font-bold">高音 (High Pitch)</span>
+                        <svg class="w-full h-12 mx-auto mt-2" viewBox="0 0 100 40">
+                            <path d="M0,20 Q5,5 10,20 T20,20 T30,20 T40,20 T50,20 T60,20 T70,20 T80,20 T90,20 T100,20" fill="none" stroke="#06B6D4" stroke-width="2"/>
+                        </svg>
+                        <span class="text-[10px] text-slate-500 mt-1 block">波形密集 (頻率高)</span>
+                    </div>
+                    <div class="bg-slate-950 p-3 rounded-lg border border-slate-900">
+                        <span class="text-indigo-400 font-bold">低音 (Low Pitch)</span>
+                        <svg class="w-full h-12 mx-auto mt-2" viewBox="0 0 100 40">
+                            <path d="M0,20 Q12.5,5 25,20 T50,20 T75,20 T100,20" fill="none" stroke="#6366F1" stroke-width="2"/>
+                        </svg>
+                        <span class="text-[10px] text-slate-500 mt-1 block">波形寬鬆 (頻率低)</span>
+                    </div>
+                </div>
+                <div class="space-y-1">
+                    <p class="font-semibold text-white">課堂互動練習：</p>
+                    <ul class="list-disc list-inside space-y-1 pl-1 text-xs">
+                        <li>試著將你的<strong class="text-brand-neonCyan">右手舉高</strong>，觀察數值面板，頻率是否往 <span class="text-brand-neonCyan">1000 Hz</span> 靠近？</li>
+                        <li>試著將<strong class="text-brand-neonCyan">右手放低</strong>，看看頻率是否往 <span class="text-indigo-400">200 Hz</span> 下降？</li>
+                        <li>觀察示波器的正弦波形：高音時波形是不是變得很擁擠？低音時波形是否變寬了？</li>
+                    </ul>
+                </div>
+            </div>
+            <!-- 視窗腳部 -->
+            <div class="px-6 py-4 bg-slate-900/30 border-t border-slate-800/80 flex justify-end">
+                <button onclick="toggleModal('modal-pitch-info', false)" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 font-medium rounded-xl transition duration-150 text-xs">
+                    我知道了
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- 彈出視窗 2：調變機制探討 Modal -->
+    <!-- ========================================== -->
+    <div id="modal-mod-info" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm hidden">
+        <div class="bg-brand-card border border-slate-800 rounded-2xl max-w-lg w-full overflow-hidden shadow-2xl animate-in fade-in zoom-in-95 duration-200">
+            <!-- 視窗頭部 -->
+            <div class="px-6 py-4 border-b border-slate-800 flex items-center justify-between bg-slate-900/50">
+                <div class="flex items-center gap-2 text-brand-neonPink">
+                    <i data-lucide="waves" class="w-5 h-5"></i>
+                    <h3 class="font-bold text-white text-base">什麼是調變 (Modulation)？</h3>
+                </div>
+                <button onclick="toggleModal('modal-mod-info', false)" class="text-slate-400 hover:text-white transition">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            <!-- 視窗內容 -->
+            <div class="p-6 space-y-4 text-sm text-slate-300 leading-relaxed max-h-[70vh] overflow-y-auto">
+                <p>
+                    在電子合成與科技音樂中，**調變 (Modulation)** 是指用一組信號（控制源）去改變另一個聲音的屬性（如音量、音高或音色）。
+                </p>
+                <div class="bg-slate-900 p-4 rounded-xl border border-slate-800 space-y-2">
+                    <h4 class="font-bold text-brand-neonPink text-xs flex items-center gap-1">
+                        <i data-lucide="info" class="w-4 h-4"></i> 音樂概念：顫音 (Vibrato)
+                    </h4>
+                    <p class="text-xs">
+                        在這個探索器中，當你搖晃左手時，系統會開啟一個**低頻振盪器 (LFO)** 來微幅、快速地左右推動你的聲音頻率。這就像小提琴手在按弦時，左手手指微微揉動（揉弦），製造出溫暖而具有波動感的「顫音」效果。
+                    </p>
+                </div>
+                <div class="space-y-2">
+                    <h4 class="font-bold text-white text-xs">我們控制的兩個核心參數：</h4>
+                    <div class="grid grid-cols-2 gap-3 text-xs">
+                        <div class="p-3 bg-slate-950 rounded-lg border border-slate-900">
+                            <span class="text-brand-neonPink font-bold block">1. 調變速度 (Speed / Hz)</span>
+                            聲音每秒鐘上下發抖、擺動的次數。
+                        </div>
+                        <div class="p-3 bg-slate-950 rounded-lg border border-slate-900">
+                            <span class="text-pink-400 font-bold block">2. 調變深度 (Depth)</span>
+                            聲音音高發抖時，偏移原本音高的範圍大小。
+                        </div>
+                    </div>
+                </div>
+                <div class="space-y-1">
+                    <p class="font-semibold text-white">課堂互動練習：</p>
+                    <ul class="list-disc list-inside space-y-1 pl-1 text-xs">
+                        <li>試著將你的<strong class="text-brand-neonPink">左手在半空中快速左右擺動</strong>，觀察調變速度與強度是否大幅上升？聲音聽起來是不是產生了劇烈的波動與發抖感？</li>
+                        <li>試著將<strong class="text-brand-neonPink">左手停住不動</strong>，調變強度是否歸零？聲音是否回歸到純淨、平穩的音效？</li>
+                        <li>切換不同的音色（例如「金屬機械人」或「科幻外太空」），感受調變（LFO）在不同聲學載體下產生的奇妙變化！</li>
+                    </ul>
+                </div>
+            </div>
+            <!-- 視窗腳部 -->
+            <div class="px-6 py-4 bg-slate-900/30 border-t border-slate-800/80 flex justify-end">
+                <button onclick="toggleModal('modal-mod-info', false)" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 font-medium rounded-xl transition duration-150 text-xs">
+                    我知道了
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 音效與鏡頭控制核心 JavaScript 穩定器 -->
+    <script>
+        // ----------------------------------------------------
+        // 全域狀態定義
+        // ----------------------------------------------------
+        let audioCtx = null;
+        let mainOsc = null;
+        let lfo = null;
+        let lfoGain = null;
+        let masterGain = null;
+        let analyser = null;
+        let delayNode = null;
+        let delayFeedback = null;
+        
+        let isSoundPlaying = false;
+        let synthType = 'sine';
+        
+        // 偵測與媒體流狀態
+        let trackingActive = false;
+        let simulationEnabled = false;
+        let webcamStream = null;
+        let handsDetector = null;
+        let cameraLoopRunning = false;
+
+        // 手勢波動偵測輔助 (記錄左手 X 軸數據)
+        const LEFT_HAND_X_HISTORY = [];
+        const MAX_HISTORY_LEN = 10; 
+
+        // ----------------------------------------------------
+        // 彈出教學視窗控制邏輯
+        // ----------------------------------------------------
+        function toggleModal(modalId, show) {
+            const modal = document.getElementById(modalId);
+            if (!modal) return;
+            if (show) {
+                modal.classList.remove('hidden');
+            } else {
+                modal.classList.add('hidden');
+            }
+        }
+
+        // ----------------------------------------------------
+        // Web Audio API 嚴格強制啟動機制
+        // ----------------------------------------------------
+        function unlockAudioSystem() {
+            try {
+                // 1. 如果尚未建立音訊環境，立刻建立
+                if (!audioCtx) {
+                    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                }
+
+                // 2. 建立完整的聲音處理鏈路（若尚未建立）
+                if (!mainOsc) {
+                    buildAudioGraph();
+                }
+
+                // 3. 強制恢復並確認解鎖音訊上下文
+                audioCtx.resume().then(() => {
+                    console.log("AudioContext 已成功重啟並運行中！");
+                    
+                    // 更新 UI 按鈕狀態
+                    const unlockBtn = document.getElementById('btn-audio-unlock');
+                    unlockBtn.innerHTML = `<i data-lucide="check" class="w-5 h-5 text-white"></i> 步驟 1：聲音已解鎖！`;
+                    unlockBtn.className = "px-6 py-3 bg-brand-neonGreen text-white font-bold rounded-xl flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/10";
+                    
+                    const camBtn = document.getElementById('btn-camera-start');
+                    camBtn.removeAttribute('disabled');
+                    camBtn.className = "px-6 py-3 bg-brand-neonCyan hover:bg-cyan-500 text-brand-dark font-bold rounded-xl transition duration-200 flex items-center justify-center gap-2 shadow-lg shadow-cyan-500/20";
+                    
+                    const toggleBtn = document.getElementById('btn-sound-toggle');
+                    toggleBtn.removeAttribute('disabled');
+                    toggleBtn.className = "py-3 px-4 bg-brand-neonPink hover:bg-pink-600 text-white font-bold rounded-xl transition duration-200 flex items-center justify-center gap-2 shadow-lg shadow-pink-500/10";
+                    toggleBtn.innerHTML = `<i data-lucide="play" class="w-5 h-5"></i><span>啟動聲音</span>`;
+                    
+                    lucide.createIcons();
+                }).catch(err => {
+                    alert("重啟音效硬體失敗，請重整網頁並再試一次: " + err);
+                });
+
+            } catch (err) {
+                console.error("解鎖音訊時發生異常", err);
+                alert("建立音效模組失敗，請確認瀏覽器支援 Web Audio: " + err);
+            }
+        }
+
+        // 建立音訊內部迴路
+        function buildAudioGraph() {
+            // 主增益
+            masterGain = audioCtx.createGain();
+            masterGain.gain.setValueAtTime(0.0, audioCtx.currentTime); // 初始靜音
+
+            // 分析器
+            analyser = audioCtx.createAnalyser();
+            analyser.fftSize = 256;
+            
+            // LFO
+            lfo = audioCtx.createOscillator();
+            lfoGain = audioCtx.createGain();
+            lfo.frequency.setValueAtTime(5, audioCtx.currentTime);
+            lfoGain.gain.setValueAtTime(0, audioCtx.currentTime);
+            
+            lfo.connect(lfoGain);
+            lfo.start();
+
+            // 主音頻
+            mainOsc = audioCtx.createOscillator();
+            mainOsc.type = 'sine';
+            mainOsc.frequency.setValueAtTime(440, audioCtx.currentTime);
+            
+            // LFO 連接主音頻以作顫音
+            lfoGain.connect(mainOsc.frequency);
+
+            // 科幻延遲
+            delayNode = audioCtx.createDelay(1.0);
+            delayFeedback = audioCtx.createGain();
+            delayNode.delayTime.value = 0.35;
+            delayFeedback.gain.value = 0.45;
+
+            mainOsc.connect(masterGain);
+            mainOsc.connect(delayNode);
+            delayNode.connect(delayFeedback);
+            delayFeedback.connect(delayNode);
+            delayNode.connect(masterGain);
+            
+            // 初始靜音延遲
+            delayFeedback.gain.setValueAtTime(0, audioCtx.currentTime);
+
+            // 輸出
+            masterGain.connect(analyser);
+            analyser.connect(audioCtx.destination);
+            
+            mainOsc.start();
+        }
+
+        // ----------------------------------------------------
+        // 聲音播放 / 靜音切換
+        // ----------------------------------------------------
+        function toggleSound() {
+            if (!audioCtx) return;
+            
+            const btn = document.getElementById('btn-sound-toggle');
+            const overlay = document.getElementById('sound-off-overlay');
+            
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+
+            if (!isSoundPlaying) {
+                // 淡入
+                masterGain.gain.setTargetAtTime(0.4, audioCtx.currentTime, 0.05);
+                btn.innerHTML = `<i data-lucide="square" class="w-5 h-5"></i><span>停止聲音</span>`;
+                btn.className = "py-3 px-4 bg-amber-500 hover:bg-amber-600 text-white font-bold rounded-xl transition duration-200 flex items-center justify-center gap-2";
+                overlay.style.display = 'none';
+                isSoundPlaying = true;
+                drawOscilloscope();
+            } else {
+                // 淡出
+                masterGain.gain.setTargetAtTime(0.0, audioCtx.currentTime, 0.05);
+                btn.innerHTML = `<i data-lucide="play" class="w-5 h-5"></i><span>啟動聲音</span>`;
+                btn.className = "py-3 px-4 bg-brand-neonPink hover:bg-pink-600 text-white font-bold rounded-xl transition duration-200 flex items-center justify-center gap-2 shadow-lg shadow-pink-500/10";
+                overlay.style.display = 'flex';
+                isSoundPlaying = false;
+            }
+            lucide.createIcons();
+        }
+
+        // 更換音色
+        function changeSynth(type) {
+            synthType = type;
+            if (!audioCtx || !mainOsc) return;
+
+            if (type === 'sine' || type === 'square' || type === 'sawtooth') {
+                mainOsc.type = type;
+                delayFeedback.gain.setTargetAtTime(0.0, audioCtx.currentTime, 0.1);
+            } else if (type === 'robot') {
+                mainOsc.type = 'sawtooth';
+                delayFeedback.gain.setTargetAtTime(0.0, audioCtx.currentTime, 0.1);
+            } else if (type === 'space') {
+                mainOsc.type = 'sine';
+                delayFeedback.gain.setTargetAtTime(0.6, audioCtx.currentTime, 0.2);
+            }
+        }
+
+        // ----------------------------------------------------
+        // 原生相機串流
+        // ----------------------------------------------------
+        const videoElement = document.getElementById('webcam');
+        const canvasElement = document.getElementById('canvas');
+        const canvasCtx = canvasElement.getContext('2d');
+        const trackingStatus = document.getElementById('tracking-status');
+        const trackingText = document.getElementById('tracking-text');
+
+        async function initCameraStream() {
+            const placeholder = document.getElementById('camera-placeholder');
+            const placeholderIcon = document.getElementById('placeholder-icon');
+            const placeholderTitle = document.getElementById('placeholder-title');
+            const placeholderDesc = document.getElementById('placeholder-desc');
+
+            trackingStatus.classList.remove('hidden');
+            trackingText.innerText = "連線相機中...";
+            document.getElementById('status-ping').className = "w-2 h-2 rounded-full bg-amber-500 animate-ping";
+
+            const cameraConfigs = [
+                { video: { width: { ideal: 640 }, height: { ideal: 480 }, facingMode: "user" }, audio: false },
+                { video: { facingMode: "user" }, audio: false },
+                { video: true, audio: false }
+            ];
+
+            let success = false;
+            for (let i = 0; i < cameraConfigs.length; i++) {
+                try {
+                    console.log(`嘗試第 ${i+1} 種相機配置...`);
+                    const stream = await navigator.mediaDevices.getUserMedia(cameraConfigs[i]);
+                    videoElement.srcObject = stream;
+                    webcamStream = stream;
+                    
+                    await new Promise((resolve) => {
+                        videoElement.onloadedmetadata = () => {
+                            videoElement.play().then(resolve);
+                        };
+                    });
+                    
+                    success = true;
+                    break; 
+                } catch (e) {
+                    console.warn(`第 ${i+1} 種配置啟動失敗: `, e);
+                }
+            }
+
+            if (!success) {
+                trackingText.innerText = "鏡頭開機失敗";
+                document.getElementById('status-ping').className = "w-2 h-2 rounded-full bg-red-500";
+                
+                placeholderIcon.innerHTML = `<i data-lucide="alert-triangle" class="w-10 h-10 text-rose-500"></i>`;
+                placeholderTitle.innerText = "無法啟動您的相機鏡頭";
+                placeholderDesc.innerHTML = `
+                    <div class="text-left text-xs bg-slate-900 border border-slate-900 p-3 rounded-lg space-y-1 text-slate-300">
+                        <p class="font-bold text-rose-400">常見原因與解決方法：</p>
+                        <p>1. <strong>權限被阻擋</strong>：請檢查瀏覽器網址列左側是否有鎖頭圖示，並開啟「相機」存取權。</p>
+                        <p>2. <strong>相機被佔用</strong>：請關閉 Zoom、Teams 等其他可能正在佔用鏡頭的軟體。</p>
+                        <p>3. <strong>平板系統限制</strong>：部分 iPad 需要在系統設定中允許網頁開啟相機。</p>
+                    </div>
+                `;
+                lucide.createIcons();
+                return;
+            }
+
+            trackingText.innerText = "相機已啟動，加載 AI 手勢引擎...";
+            initMediaPipeHands();
+        }
+
+        // ----------------------------------------------------
+        // 初始化 MediaPipe 智慧手部追蹤
+        // ----------------------------------------------------
+        function initMediaPipeHands() {
+            try {
+                handsDetector = new Hands({
+                    locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`
+                });
+
+                handsDetector.setOptions({
+                    maxNumHands: 2,
+                    modelComplexity: 1,
+                    minDetectionConfidence: 0.5,
+                    minTrackingConfidence: 0.5
+                });
+
+                handsDetector.onResults(onHandResults);
+
+                cameraLoopRunning = true;
+                requestAnimationFrame(cameraRenderLoop);
+
+                document.getElementById('camera-placeholder').classList.add('hidden');
+                document.getElementById('status-ping').className = "w-2 h-2 rounded-full bg-brand-neonGreen animate-ping";
+                trackingText.innerText = "AI 偵測正常運作中：請將雙手伸向鏡頭前";
+                trackingActive = true;
+
+            } catch (err) {
+                console.error("MediaPipe 初始化錯誤", err);
+                trackingText.innerText = "AI 模組加載失敗";
+                alert("加載 AI 感應模組時發生問題，請改用滑鼠觸控模擬模式！");
+                enableSimulatedControl();
+            }
+        }
+
+        async function cameraRenderLoop() {
+            if (!cameraLoopRunning || !webcamStream) return;
+            
+            if (videoElement.readyState === videoElement.HAVE_ENOUGH_DATA) {
+                try {
+                    await handsDetector.send({ image: videoElement });
+                } catch (err) {
+                    console.error("手部運算影格時發生異常", err);
+                }
+            }
+            requestAnimationFrame(cameraRenderLoop);
+        }
+
+        // ----------------------------------------------------
+        // 偵測數據與調變音頻參數
+        // ----------------------------------------------------
+        function onHandResults(results) {
+            if (canvasElement.width !== canvasElement.clientWidth) {
+                canvasElement.width = canvasElement.clientWidth;
+                canvasElement.height = canvasElement.clientHeight;
+            }
+
+            canvasCtx.save();
+            canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
+
+            // 繪製本地視訊影格
+            canvasCtx.drawImage(results.image, 0, 0, canvasElement.width, canvasElement.height);
+
+            let rightHandY = 0.5; // 預設右手音高高度 (右手 = 鏡面畫面右半邊，實際 Right Hand)
+            let leftHandWavingSpeed = 0.0; // 預設左手擺動速度 (左手 = 鏡面畫面左半邊，實際 Left Hand)
+            let detectedHands = false;
+
+            if (results.multiHandLandmarks && results.multiHandedness) {
+                detectedHands = true;
+                trackingText.innerText = `已成功偵測雙手 (${results.multiHandLandmarks.length})`;
+
+                for (let index = 0; index < results.multiHandLandmarks.length; index++) {
+                    const landmarks = results.multiHandLandmarks[index];
+                    
+                    // 鏡像畫面中：
+                    // 學生站在相機前：
+                    // - 他的左手出現在他視野的「左半邊」（也就是畫面左側，對應 X > 0.5）
+                    // - 他的右手出現在他視野的「右半邊」（也就是畫面右側，對應 X <= 0.5）
+                    const isLeftSideOfScreen = landmarks[0].x > 0.5; 
+
+                    // 1. 左手 (在鏡面左半邊，實際左手)：控制 Modulation 調變
+                    if (isLeftSideOfScreen) {
+                        const currentX = landmarks[0].x; 
+                        const currentTime = performance.now();
+
+                        LEFT_HAND_X_HISTORY.push({ x: currentX, time: currentTime });
+                        if (LEFT_HAND_X_HISTORY.length > MAX_HISTORY_LEN) {
+                            LEFT_HAND_X_HISTORY.shift();
+                        }
+
+                        // 計算 X 軸晃動移位總和 (波動指標)
+                        let totalDisplacement = 0;
+                        for (let i = 1; i < LEFT_HAND_X_HISTORY.length; i++) {
+                            totalDisplacement += Math.abs(LEFT_HAND_X_HISTORY[i].x - LEFT_HAND_X_HISTORY[i-1].x);
+                        }
+                        
+                        leftHandWavingSpeed = totalDisplacement; 
+                        drawHandPoints(landmarks, '#EC4899'); // 左手 = 粉色 (Modulation)
+                    } 
+                    // 2. 右手 (在鏡面右半邊，實際右手)：控制 Pitch 音高
+                    else {
+                        rightHandY = landmarks[8].y; // 食指指尖 Y 座標
+                        drawHandPoints(landmarks, '#06B6D4'); // 右手 = 青色 (Pitch)
+                    }
+                }
+            }
+
+            canvasCtx.restore();
+
+            // 若有手部輸入，即刻更新聲音
+            if (detectedHands) {
+                updateAudioParams(rightHandY, leftHandWavingSpeed);
+            }
+        }
+
+        // 繪製骨架線與關節
+        function drawHandPoints(landmarks, color) {
+            drawConnectors(canvasCtx, landmarks, HAND_CONNECTIONS, {color: 'rgba(255, 255, 255, 0.3)', lineWidth: 3});
+            drawLandmarks(canvasCtx, landmarks, {
+                color: color, 
+                lineWidth: 1, 
+                radius: (data) => (data.index === 8 || data.index === 4 || data.index === 12 || data.index === 16 || data.index === 20) ? 6 : 2
+            });
+        }
+
+        // 更新聲音參數 (映射關係)
+        function updateAudioParams(rightHandY, leftHandWavingSpeed) {
+            if (!audioCtx || !isSoundPlaying || !mainOsc) return;
+
+            // 1. 音高 (Pitch) 映射 (200Hz - 1000Hz)
+            let rawPitchRatio = 1 - rightHandY;
+            if (rawPitchRatio < 0) rawPitchRatio = 0;
+            if (rawPitchRatio > 1) rawPitchRatio = 1;
+            
+            // 採取平滑對數映射
+            const minFreq = 200;
+            const maxFreq = 1000;
+            const targetFreq = minFreq * Math.pow(maxFreq / minFreq, rawPitchRatio);
+            
+            mainOsc.frequency.setTargetAtTime(targetFreq, audioCtx.currentTime, 0.04);
+
+            // 2. 調變 (Modulation) LFO 擺動控制 (由左手擺速決定)
+            let waveSpeedNormalized = leftHandWavingSpeed * 6.5; 
+            if (waveSpeedNormalized > 1) waveSpeedNormalized = 1;
+            if (waveSpeedNormalized < 0) waveSpeedNormalized = 0;
+
+            let targetLfoRate = waveSpeedNormalized * 15; // 0Hz 到 15Hz
+            let targetLfoDepth = 0;
+
+            if (synthType === 'robot') {
+                targetLfoRate = 35 + (waveSpeedNormalized * 45); 
+                targetLfoDepth = waveSpeedNormalized * 150; 
+            } else if (synthType === 'space') {
+                targetLfoRate = 0.5 + (waveSpeedNormalized * 4); 
+                targetLfoDepth = waveSpeedNormalized * 200; 
+            } else {
+                targetLfoDepth = waveSpeedNormalized * 60; 
+            }
+
+            lfo.frequency.setTargetAtTime(targetLfoRate, audioCtx.currentTime, 0.05);
+            lfoGain.gain.setTargetAtTime(targetLfoDepth, audioCtx.currentTime, 0.05);
+
+            // 更新儀表板
+            document.getElementById('val-pitch').innerText = Math.round(targetFreq);
+            document.getElementById('val-note').innerText = getNoteNameFromFreq(targetFreq);
+            document.getElementById('val-mod-speed').innerText = targetLfoRate.toFixed(1);
+            
+            let depthText = "無";
+            if (targetLfoDepth > 0) {
+                if (targetLfoDepth < 20) depthText = "輕微波動";
+                else if (targetLfoDepth < 80) depthText = "明顯顫音";
+                else depthText = "劇烈震盪";
+            }
+            document.getElementById('val-mod-depth').innerText = depthText;
+
+            // 進度條長度
+            const pitchPercent = ((targetFreq - minFreq) / (maxFreq - minFreq)) * 100;
+            document.getElementById('bar-pitch').style.width = `${Math.min(100, Math.max(0, pitchPercent))}%`;
+            document.getElementById('bar-mod').style.width = `${waveSpeedNormalized * 100}%`;
+        }
+
+        // 音高頻率轉唱名
+        function getNoteNameFromFreq(freq) {
+            const notes = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
+            const noteIndex = Math.round(12 * Math.log2(freq / 440)) + 69;
+            if (isNaN(noteIndex) || noteIndex < 0) return "---";
+            const octave = Math.floor(noteIndex / 12) - 1;
+            const noteName = notes[noteIndex % 12];
+            return `${noteName}${octave}`;
+        }
+
+        // ----------------------------------------------------
+        // 實時示波器繪製 (高幀率波形分析)
+        // ----------------------------------------------------
+        const oscCanvas = document.getElementById('oscillator-canvas');
+        const oscCtx = oscCanvas.getContext('2d');
+        
+        function resizeOscCanvas() {
+            oscCanvas.width = oscCanvas.clientWidth * window.devicePixelRatio;
+            oscCanvas.height = oscCanvas.clientHeight * window.devicePixelRatio;
+        }
+        window.addEventListener('resize', resizeOscCanvas);
+        resizeOscCanvas();
+
+        function drawOscilloscope() {
+            if (!isSoundPlaying || !analyser) return;
+
+            requestAnimationFrame(drawOscilloscope);
+
+            const bufferLength = analyser.frequencyBinCount;
+            const dataArray = new Uint8Array(bufferLength);
+            analyser.getByteTimeDomainData(dataArray);
+
+            const width = oscCanvas.width;
+            const height = oscCanvas.height;
+
+            oscCtx.fillStyle = '#080c18';
+            oscCtx.fillRect(0, 0, width, height);
+
+            oscCtx.strokeStyle = 'rgba(30, 41, 59, 0.7)';
+            oscCtx.lineWidth = 1;
+            oscCtx.beginPath();
+            oscCtx.moveTo(0, height / 2);
+            oscCtx.lineTo(width, height / 2);
+            oscCtx.stroke();
+            
+            oscCtx.strokeStyle = synthType === 'space' ? '#EC4899' : '#06B6D4';
+            oscCtx.lineWidth = Math.max(2, window.devicePixelRatio * 2.5);
+            oscCtx.shadowBlur = 12;
+            oscCtx.shadowColor = oscCtx.strokeStyle;
+            oscCtx.beginPath();
+
+            const sliceWidth = width / bufferLength;
+            let x = 0;
+
+            for (let i = 0; i < bufferLength; i++) {
+                const v = dataArray[i] / 128.0; 
+                const y = (v * height) / 2;
+
+                if (i === 0) {
+                    oscCtx.moveTo(x, y);
+                } else {
+                    oscCtx.lineTo(x, y);
+                }
+
+                x += sliceWidth;
+            }
+
+            oscCtx.lineTo(width, height / 2);
+            oscCtx.stroke();
+            oscCtx.shadowBlur = 0;
+        }
+
+        // ----------------------------------------------------
+        // 滑鼠/觸控板模擬控制機制
+        // ----------------------------------------------------
+        const touchZone = document.getElementById('touch-zone');
+        const simulatedPointer = document.getElementById('simulated-pointer');
+        let isDrawingSim = false;
+        let lastSimX = 0;
+        let lastSimTime = 0;
+        let simWavingSpeed = 0;
+
+        function enableSimulatedControl() {
+            simulationEnabled = true;
+            document.getElementById('camera-placeholder').classList.add('hidden');
+            document.getElementById('simulation-pad').classList.remove('hidden');
+            document.getElementById('tracking-status').classList.remove('hidden');
+            trackingText.innerText = "滑鼠/觸控板模擬模式";
+            document.getElementById('status-ping').className = "w-2 h-2 rounded-full bg-brand-neonCyan animate-pulse";
+            
+            if (!audioCtx) unlockAudioSystem();
+        }
+
+        function disableSimulatedControl() {
+            simulationEnabled = false;
+            document.getElementById('simulation-pad').classList.add('hidden');
+            document.getElementById('camera-placeholder').classList.remove('hidden');
+            document.getElementById('tracking-status').classList.add('hidden');
+        }
+
+        touchZone.addEventListener('mousedown', (e) => {
+            isDrawingSim = true;
+            simulatedPointer.classList.remove('hidden');
+            updateSimulatedPosition(e);
+        });
+
+        window.addEventListener('mousemove', (e) => {
+            if (!isDrawingSim) return;
+            updateSimulatedPosition(e);
+        });
+
+        window.addEventListener('mouseup', () => {
+            isDrawingSim = false;
+            simulatedPointer.classList.add('hidden');
+            simWavingSpeed = 0;
+        });
+
+        touchZone.addEventListener('touchstart', (e) => {
+            isDrawingSim = true;
+            simulatedPointer.classList.remove('hidden');
+            updateSimulatedPosition(e.touches[0]);
+        }, { passive: true });
+
+        touchZone.addEventListener('touchmove', (e) => {
+            if (!isDrawingSim) return;
+            updateSimulatedPosition(e.touches[0]);
+        }, { passive: true });
+
+        touchZone.addEventListener('touchend', () => {
+            isDrawingSim = false;
+            simulatedPointer.classList.add('hidden');
+            simWavingSpeed = 0;
+        });
+
+        function updateSimulatedPosition(e) {
+            const rect = touchZone.getBoundingClientRect();
+            const clientX = e.clientX - rect.left;
+            const clientY = e.clientY - rect.top;
+
+            const pctX = Math.max(0, Math.min(1, clientX / rect.width));
+            const pctY = Math.max(0, Math.min(1, clientY / rect.height));
+
+            simulatedPointer.style.left = `${pctX * 100}%`;
+            simulatedPointer.style.top = `${pctY * 100}%`;
+
+            const currentTime = performance.now();
+            const deltaTime = currentTime - lastSimTime;
+            if (deltaTime > 0) {
+                const deltaX = Math.abs(pctX - lastSimX);
+                const currentSpeed = deltaX / (deltaTime / 1000); 
+                
+                simWavingSpeed = simWavingSpeed * 0.75 + currentSpeed * 0.08;
+                if (simWavingSpeed > 0.45) simWavingSpeed = 0.45; 
+            }
+
+            lastSimX = pctX;
+            lastSimTime = currentTime;
+
+            // 模擬模式同樣使用 (上下=音高, 左右晃速=調變)
+            updateAudioParams(pctY, simWavingSpeed);
+        }
+
+        // ----------------------------------------------------
+        // 小組合作活動情境與重設
+        // ----------------------------------------------------
+        function selectScenario(type) {
+            if (!audioCtx) {
+                alert("請先點選『步驟 1：啟動並解鎖聲音』解鎖系統！");
+                return;
+            }
+            
+            const select = document.getElementById('synth-select');
+            if (type === 'space') {
+                select.value = 'space';
+                changeSynth('space');
+            } else if (type === 'zoo') {
+                select.value = 'sine';
+                changeSynth('sine');
+            } else if (type === 'factory') {
+                select.value = 'robot';
+                changeSynth('robot');
+            } else if (type === 'weather') {
+                select.value = 'sawtooth';
+                changeSynth('sawtooth');
+            }
+            
+            if (!isSoundPlaying) {
+                toggleSound();
+            }
+        }
+
+        function resetSystem() {
+            if (isSoundPlaying) {
+                toggleSound();
+            }
+            document.getElementById('synth-select').value = 'sine';
+            changeSynth('sine');
+            
+            document.getElementById('val-pitch').innerText = "---";
+            document.getElementById('val-note').innerText = "---";
+            document.getElementById('val-mod-speed').innerText = "---";
+            document.getElementById('val-mod-depth').innerText = "---";
+            document.getElementById('bar-pitch').style.width = "0%";
+            document.getElementById('bar-mod').style.width = "0%";
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            lucide.createIcons();
+        });
+    </script>
+</body>
+</html>
