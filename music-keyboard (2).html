@@ -581,11 +581,17 @@ header p {
   <!-- =========================================================
        HEADER
        ========================================================= -->
-  <header>
-    <div class="lab-badge">🎵 Miss Ho's Music Lab</div>
-    <h1>Interactive Keyboard<br>互動音樂鍵盤</h1>
-    <p>Learn Notes · Staff Position · Chord Analysis &nbsp;|&nbsp; 音名 · 五線譜 · 和弦分析</p>
-  </header>
+<header class="main-header animate-fade-in">
+  <div class="header-logo-section" style="display: flex; align-items: center; gap: 15px;">
+    
+    <img src="logo.jpeg" alt="Miss Ho's Music Lab Logo" style="width: 50px; height: 50px; border-radius: 50%; object-fit: cover; background-color: #fff; border: 2px solid var(--accent);" onerror="this.onerror=null; this.style.display='none';">
+    
+    <div>
+      <h1 style="margin: 0; line-height: 1.2;">Miss Ho's Music Lab</h1>
+      <p style="margin: 5px 0 0 0;">Interactive Keyboard · Explore Harmonies & Ear Training</p>
+    </div>
+  </div>
+</header>
 
   <!-- =========================================================
        MODE TABS
