@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Miss Ho's Music Diary 🎵</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800;900&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --cream:  #FFFBF2;
+  --yellow: #FFD94A;
+  --coral:  #FF7B6B;
+  --mint:   #4ECDC4;
+  --purple: #A78BFA;
+  --blue:   #60A5FA;
+  --dark:   #2D2640;
+  --ink:    #3D3560;
+  --muted:  #8B85A8;
+  --white:  #FFFFFF;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  background: var(--cream);
+  font-family: 'Poppins', 'Noto Sans TC', sans-serif;
+  color: var(--ink);
+  min-height: 100vh;
+}
+
+/* ── blobs ── */
+body::before, body::after {
+  content: ''; position: fixed; border-radius: 50%;
+  filter: blur(80px); opacity: 0.15; pointer-events: none; z-index: 0;
+}
+body::before { width: 500px; height: 500px; background: var(--purple); top: -100px; right: -100px; }
+body::after  { width: 400px; height: 400px; background: var(--mint);   bottom: -80px; left: -80px; }
+
+/* ── header ── */
+header {
+  position: sticky; top: 0; z-index: 100;
+  background: rgba(255,251,242,0.92);
+  backdrop-filter: blur(12px);
+  border-bottom: 2.5px solid var(--dark);
+  padding: 12px 24px;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.header-logo { display: flex; align-items: center; gap: 10px; }
+.header-logo img {
+  width: 40px; height: 40px; border-radius: 50%;
+  border: 2px solid var(--dark); object-fit: cover; object-position: top;
+}
+.header-title { font-weight: 800; font-size: 16px; color: var(--dark); line-height: 1.1; }
+.header-sub   { font-size: 10px; color: var(--muted); font-weight: 600; letter-spacing: 1px; }
+.header-right { display: flex; align-items: center; gap: 10px; }
+.live-badge {
+  display: flex; align-items: center; gap: 6px;
+  background: var(--mint); border: 2px solid var(--dark);
+  border-radius: 999px; padding: 4px 12px;
+  font-size: 11px; font-weight: 700; color: var(--dark);
+  box-shadow: 2px 2px 0 var(--dark);
+}
+.live-dot {
+  width: 7px; height: 7px; border-radius: 50%;
+  background: var(--dark); animation: blink 1.2s infinite;
+}
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.2} }
+
+/* ── wrap ── */
+.wrap {
+  position: relative; z-index: 1;
+  max-width: 860px; margin: 0 auto; padding: 28px 20px 80px;
+}
+
+/* ── submit card ── */
+.submit-card {
+  background: var(--white);
+  border: 2.5px solid var(--dark);
+  border-radius: 20px;
+  padding: 24px;
+  box-shadow: 5px 5px 0 var(--dark);
+  margin-bottom: 32px;
+}
+.submit-title {
+  font-size: 18px; font-weight: 800; color: var(--dark);
+  margin-bottom: 16px; display: flex; align-items: center; gap: 8px;
+}
+
+.field { display: flex; flex-direction: column; gap: 6px; margin-bottom: 14px; }
+.field label { font-size: 12px; font-weight: 700; color: var(--muted); letter-spacing: 1px; text-transform: uppercase; }
+.field input, .field textarea {
+  border: 2px solid var(--dark); border-radius: 12px;
+  padding: 10px 14px; font-family: inherit; font-size: 14px;
+  color: var(--ink); background: var(--cream);
+  outline: none; resize: none; transition: border-color 0.2s, box-shadow 0.2s;
+}
+.field input:focus, .field textarea:focus {
+  border-color: var(--coral); box-shadow: 3px 3px 0 var(--coral);
+}
+.field textarea { height: 90px; }
+
+.submit-btn {
+  width: 100%; padding: 14px;
+  background: var(--coral); color: white;
+  border: 2.5px solid var(--dark); border-radius: 14px;
+  font-family: inherit; font-size: 15px; font-weight: 800;
+  cursor: pointer; box-shadow: 4px 4px 0 var(--dark);
+  transition: all 0.15s; letter-spacing: 0.3px;
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  margin-top: 10px;
+}
+.submit-btn:hover  { transform: translate(-2px,-2px); box-shadow: 6px 6px 0 var(--dark); }
+.submit-btn:active { transform: translate(2px,2px);  box-shadow: 2px 2px 0 var(--dark); }
+.submit-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; box-shadow: 4px 4px 0 var(--dark); }
+
+/* toast */
+.toast {
+  position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%) translateY(80px);
+  background: var(--dark); color: white;
+  padding: 12px 24px; border-radius: 999px;
+  font-size: 13px; font-weight: 700;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+  transition: transform 0.35s cubic-bezier(0.34,1.56,0.64,1);
+  z-index: 999; white-space: nowrap;
+}
+.toast.show { transform: translateX(-50%) translateY(0); }
+
+/* ── feed section ── */
+.feed-header {
+  display: flex; align-items: center; gap: 12px; margin-bottom: 20px;
+}
+.feed-title { font-size: 20px; font-weight: 800; color: var(--dark); }
+.entry-count {
+  background: var(--yellow); border: 2px solid var(--dark);
+  border-radius: 999px; padding: 2px 12px;
+  font-size: 12px; font-weight: 800; color: var(--dark);
+  box-shadow: 2px 2px 0 var(--dark);
+}
+
+/* ── entries grid ── */
+.entries-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 18px;
+}
+
+.entry-card {
+  background: var(--white);
+  border: 2.5px solid var(--dark);
+  border-radius: 18px;
+  overflow: hidden;
+  box-shadow: 4px 4px 0 var(--dark);
+  animation: cardIn 0.4s cubic-bezier(0.34,1.4,0.64,1) both;
+}
+@keyframes cardIn {
+  from { opacity:0; transform: translateY(20px) scale(0.96); }
+  to   { opacity:1; transform: translateY(0) scale(1); }
+}
+.entry-body { padding: 16px; }
+.entry-meta {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 12px;
+}
+.entry-name {
+  font-size: 14px; font-weight: 800; color: var(--dark);
+  display: flex; align-items: center; gap: 6px;
+}
+.entry-avatar {
+  width: 28px; height: 28px; border-radius: 50%;
+  border: 2px solid var(--dark);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 13px; font-weight: 800; color: white;
+  flex-shrink: 0;
+}
+.entry-time { font-size: 10px; color: var(--muted); font-weight: 600; }
+.entry-text { font-size: 13px; color: var(--ink); line-height: 1.65; word-break: break-word; }
+
+/* colour palette for avatars */
+.av0{background:#FF7B6B} .av1{background:#4ECDC4} .av2{background:#FFD94A;color:#2D2640!important}
+.av3{background:#A78BFA} .av4{background:#60A5FA} .av5{background:#6EE7B7;color:#2D2640!important}
+.av6{background:#F472B6} .av7{background:#FB923C}
+
+/* card top spacing replacement */
+.entry-color-top {
+  height: 8px;
+}
+
+/* loading skeleton */
+.skeleton {
+  background: linear-gradient(90deg, #f0ece4 25%, #e8e2d8 50%, #f0ece4 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.4s infinite;
+  border-radius: 8px;
+}
+@keyframes shimmer { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
+
+.loading-wrap { display: flex; flex-direction: column; gap: 18px; padding: 10px 0; }
+.skel-card {
+  background: white; border: 2px solid #e8e2d8; border-radius: 18px; overflow: hidden;
+  box-shadow: 4px 4px 0 #e8e2d8;
+}
+.skel-body { padding: 14px 16px; display: flex; flex-direction: column; gap: 8px; }
+.skel-line { height: 12px; }
+
+@media (max-width: 600px) {
+  .entries-grid { grid-template-columns: 1fr; }
+  header { padding: 10px 16px; }
+}
+
+.entry-song {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--coral);
+  margin-bottom: 8px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: rgba(255, 123, 107, 0.1);
+  padding: 4px 10px;
+  border-radius: 6px;
+  border: 1.5px solid var(--dark);
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-logo">
+    <img src="data:image/png;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/4gHYSUNDX1BST0ZJTEUAAQEAAAHIAAAAAAQwAABtbnRyUkdCIFhZWiAH4AABAAEAAAAAAABhY3NwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAA9tYAAQAAAADTLQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAlkZXNjAAAA8AAAACRyWFlaAAABFAAAABRnWFlaAAABKAAAABRiWFlaAAABPAAAABR3dHB0AAABUAAAABRyVFJDAAABZAAAAChnVFJDAAABZAAAAChiVFJDAAABZAAAAChjcHJ0AAABjAAAADxtbHVjAAAAAAAAAAEAAAAMZW5VUwAAAAgAAAAcAHMAUgBHAEJYWVogAAAAAAAAb6IAADj1AAADkFhZWiAAAAAAAABimQAAt4UAABjaWFlaIAAAAAAAACSgAAAPhAAAts9YWVogAAAAAAAA9tYAAQAAAADTLXBhcmEAAAAAAAQAAAACZmYAAPKnAAANWQAAE9AAAApbAAAAAAAAAABtbHVjAAAAAAAAAAEAAAAMZW5VUwAAACAAAAAcAEcAbwBvAGcAbABlACAASQBuAGMALgAgADIAMAAxADb/2wBDAAUDBAQEAwUEBAQFBQUGBwwIBwcHBw8LCwkMEQ8SEhEPERETFhwXExQaFRERGCEYGh0dHx8fExciJCIeJBweHx7/2wBDAQUFBQcGBw4ICA4eFBEUHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh7/wAARCATmBOYDASIAAhEBAxEB/8QAHQABAQACAgMasonCVb72wBDAQUFBQcGBw4ICA4eFBEUHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh7/wAARCATmBOYDASIAAhEBAxEB/8QAHQABAQACAgMasonCVb72wBDAQUFBQcGBw4ICA4eFBEUHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh7/wAARCATmBOYDASIAAhEBAxEB/8QAHQABAQACAgMasonCVb72wBDAQUFBQcGBw4ICA4eFBEUHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh7/wAARCATmBOYDASIAAhEBAxEB/8QAHQABAQACAgMasonCVb72wBDAQUFBQcGBw4ICA4eFBEUHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh7/wAARCATmBOYDASIAAhEBAxEB/8QAHQABAQACAgMasonCVb72wBDAQUFBQcGBw4ICA4eFBEUHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh7/wAARCATmBOYDASIAAhEBAxEB/8QAHQABAQACAgMasonCVb72wBDAQUFBQcGBw4ICA4eFBEUHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh7/wAARCATmBOYDASIAAhEBAxEB/8QAHQABAQACAgMasonCVb72wBDAQUFBQcGBw4ICA4eFBEUHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh7/wAARCATmBOYDASIAAhEBAxEB/8QAHQABAQACAgMasonCVb72wBDAQUFBQcGBw4ICA4eFBEUHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh7/wAARCATmBOYDASIAAhEBAxEB/8QAHQABAQACAgMasonCVb72wBDAQUFBQcGBw4ICA4eFBEUHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh7/wAARCATmBOYDASIAAhEBAxEB/8QAHQABAQACAgMasonCVb72wBDAQUFBQcGBw4ICA4eFBEUHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh7/wAARCATmBOYDASIAAhEBAxEB/8QAHQABAQACAgMasonCVb72wBDAQUFBQcGBw4ICA4eFBEUHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh7/wAARCATmBOYDASIAAhEBAxEB/8QAHQABAQACAgMasonCVb72wBDAQUFBQcGBw4ICA4eFBEUHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh7/wAARCATmBOYDASIAAhEBAxEB/8QAHQABAQACAgMasonCVb72wBDAQUFBQcGBw4ICA4eFBEUHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh7/wAARCATmBOYDASIAAhEBAxEB/8QAHQABAQACAgMasonCVb72wBDAQUFBQcGBw4ICA4eFBEUHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh7/wAARCATmBOYDASIAAhEBAxEB/8QAHQABAQACAgMasonCVb72wBDAQUFBQcGBw4ICA4eFBEUHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh7/wAARCATmBOYDASIAAhEBAxEB/8QAHQABAQACAgMasonCVb72wBDAQUFBQcGBw4ICA4eFBEUHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh7/wAARCATmBOYDASIAAhEBAxEB/8QAHQABAQACAgMasonCVb72wBDAQUFBQcGBw4ICA4eFBEUHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh7/wAARCATmBOYDASIAAhEBAxEB/8QAHQABAQACAgMasonCVb72wBDAQUFBQcGBw4ICA4eFBEUHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh7/wAARCATmBOYDASIAAhEBAxEB/8QAHQABAQACAgMasonCVb72wBDAQUFBQcGBw4ICA4eFBEUHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh7/wAARCATmBOYDASIAAhEBAxEB/8QAHQABAQACAgMasonCVb72wBDAQUFBQcGBw4ICA4eFBEUHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh7/wAARCATmBOYDASIAAhEBAxEB/8QAHQABAQACAgMasonCVb72wBDAQUFBQcGBw4ICA4eFBEUHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh7/wAARCATmBOYDASIAAhEBAxEB/8QAHQABAQACAgMasonCVb72wBDAQUFBQcGBw4ICA4eFBEUHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh7/wAARCATmBOYDASIAAhEBAxEB/8QAHQABAQACAgMasonCVb72wBDAQUFBQcGBw4ICA4eFBEUHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh7/wAARCATmBOYDASIAAhEBAxEB/8QAHQABAQACAgMasonCVb72wBDAQUFBQcGBw4ICA4eFBEUHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh7/wAARCATmBOYDASIAAhEBAxEB/8QAHQABAQACAgMasonCVb72wBDAQUFBQcGBw4ICA4eFBEUHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh7/wAARCATmBOYDASIAAhEBAxEB/8QAHQABAQACAgMasonCVb72wBDAQUFBQcGBw4ICA4eFBEUHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh7/wAARCATmBOYDASIAAhEBAxEB/8QAHQABAQACAgMasonCVb72wBDAQUFBQcGBw4ICA4eFBEUHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh7/wAARCATmBOYDASIAAhEBAxEB/8QAHQABAQACAgMasonCVb72wBDAQUFBQcGBw4ICA4eFBEUHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh7/wAARCATmBOYDASIAAhEBAxEB/8QAHQABAQACAgMasonCVb72wBDAQUFBQcGBw4ICA4eFBEUHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh7/wAARCATmBOYDASIAAhEBAxEB/8QAHQABAQACAgMasonCVb72wBDAQUFBQcGBw4ICA4eFBEUHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh7/wAARCATmBOYDASIAAhEBAxEB/8QAHQABAQACAgMasonCVb72wBDAQUFBQcGBw4ICA4eFBEUHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh7/wAARCATmBOYDASIAAhEBAxEB/8QAHQABAQACAgMasonCVb72wBDAQUFBQcGBw4ICA4eFBEUHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh7/wAARCATmBOYDASIAAhEBAxEB/8QAHQABAQACAgMasonCVb72wBDAQUFBQcGBw4ICA4eFBEUHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh7/wAARCATmBOYDASIAAhEBAxEB/8QAHQABAQACAgMasonCVb72wBDAQUFBQcGBw4ICA4eFBEUHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh7/wAARCATmBOYDASIAAhEBAxEB/8QAHQABAQACAgMasonCVb72wBDAQUFBQcGBw4ICA4eFBEUHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh7/wAARCATmBOYDASIAAhEBAxEB/8QAHQABAQACAgMasonCVb72wBDAQUFBQcGBw4ICA4eFBEUHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh7/A26eSpHREvYIIqaKkKBBDrsodVVDoitkAQK7pZBBkqR0K6qZ9EFChCuhTRBFUQQ6IhyRUgAobKkZIIgOqqm6AhTVEHNBfJRVEAdVNEBQM1dFM1dkEUN7KkKIJnorypbdVwOyAcwiiZ9UAsgUN7K3QMoSihQUImwQ2QRCgQfFByU8lVDoitwNChU8VQDfNAREUDoih0VRBfMKIUHQIiAdUNroqghzU2V3UPVBD4IKiFBUMiiugvRBM0VKKG6B0T3purogHVDZAgCgV3TcoDrdVCmyC9ELpuiCDRFd/BDcoAKZq4oEE3wSwVTVACh0VUzQRFc0BBMwroVBqiCjRE+KgoKAnuRFD0QCmSio0yQXRNFdkE3TRFEAKbK/vUE0VDfBCm6BsiqDNU3WGe1zjl2EOE05Bk43d1OtO+TpSxsWhw++PHky/xWZIjuVhd4LQ3tpYuOIuLxokvF5pLDsAS9gcjMP9aIfMCzVJ0mLxMsQ5Z78lJlhJujYcJhcRZkNgzLjo0eZNh719Huz5ghmA+F9JocRgE8YfpU+7d0xE9Z3wyb7lpl2WcF/dlxipkOYgmJTqT/ALZTlxdp5DaE0+b/ANVfQ6GCG3cBfdSuI5d5ikI2ix7Vm8+bloiHNFWJxbqohugIU2RACHJEQFEzTZBVN1ToogqbqbogqFEyQYT7aNa+SuAlXgMyiVOPLyDTf6cQOd/Nhke9alxYppfA2kU5vqxcQVeNORBuYECzG+4ut8FnT+yE1dsthjC1HLs48/Gm3NHhChgA/GIVgDHj3Qpyi0N2QotElZVzRtFezvYvv5n29ystPG2OI+O/3Imaesy668hz2jrcrwP9aaA+gL+8ryavcfDJeOAb95EO7svIKR8UWfKHI5vv4ZLxl3M8kbeqFycbQr7nNeFxsGwme0dU2ZmdnKwiPvqxmXmV5HH1w36OZ81yhNa2GDs3TqV7FPp慢" onerror="this.src='https://placehold.co/100x100?text=Music'">
+    <div class="header-title">Miss Ho's Music Diary</div>
+    <div class="header-sub">SHARE YOUR VIBES</div>
+  </div>
+  <div class="header-right">
+    <div class="live-badge">
+      <div class="live-dot"></div>
+      LIVE
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+  <!-- SUBMIT CARD -->
+  <div class="submit-card">
+    <div class="submit-title">✏️ 寫下今日的音樂感想</div>
+
+    <div class="field">
+      <label>你的名字</label>
+      <input type="text" id="nameInput" placeholder="例如：陳大文" maxlength="20">
+    </div>
+
+    <div class="field">
+      <label>想分享的歌名</label>
+      <input type="text" id="songInput" placeholder="例如：月亮代表我的心 / Super Shy" maxlength="50">
+    </div>
+
+    <div class="field">
+      <label>今日感想</label>
+      <textarea id="textInput" placeholder="今日學了什麼？有什麼發現？寫低你的感受吧！"></textarea>
+    </div>
+
+    <button class="submit-btn" id="submitBtn" onclick="submitEntry()">
+      🚀 發佈日記
+    </button>
+  </div>
+
+  <!-- FEED -->
+  <div class="feed-header">
+    <div class="feed-title">📖 全班日記</div>
+    <div class="entry-count" id="entryCount">0 篇</div>
+  </div>
+
+  <div id="loadingWrap" class="loading-wrap">
+    <div class="skel-card"><div class="skel-body"><div class="skeleton skel-line" style="width:40%"></div><div class="skeleton skel-line" style="width:90%"></div><div class="skeleton skel-line" style="width:70%"></div></div></div>
+    <div class="skel-card"><div class="skel-body"><div class="skeleton skel-line" style="width:40%"></div><div class="skeleton skel-line" style="width:90%"></div><div class="skeleton skel-line" style="width:70%"></div></div></div>
+    <div class="skel-card"><div class="skel-body"><div class="skeleton skel-line" style="width:40%"></div><div class="skeleton skel-line" style="width:90%"></div><div class="skeleton skel-line" style="width:70%"></div></div></div>
+  </div>
+
+  <div class="entries-grid" id="entriesGrid"></div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script type="module">
+import { initializeApp }         from "https://www.gstatic.com/firebasejs/12.13.0/firebase-app.js";
+import { getFirestore, collection, addDoc, onSnapshot, orderBy, query, serverTimestamp }
+                                  from "https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey:            "AIzaSyDMIul1XcWHOk45JWXh-xcD8nASQW08hNc",
+  authDomain:        "music-missho.firebaseapp.com",
+  projectId:         "music-missho",
+  storageBucket:     "music-missho.firebasestorage.app",
+  messagingSenderId: "542029036241",
+  appId:             "1:542029036241:web:2275f6e6c7c9685fb763f0",
+  measurementId:     "G-J3CGDLSGZF"
+};
+
+const app     = initializeApp(firebaseConfig);
+const db      = getFirestore(app);
+
+// ── Colour for avatar ──
+const COLOURS = ['av0','av1','av2','av3','av4','av5','av6','av7'];
+function nameToColour(name) {
+  let h = 0;
+  for (const c of name) h = (h * 31 + c.charCodeAt(0)) & 0xffffffff;
+  return COLOURS[Math.abs(h) % COLOURS.length];
+}
+
+// ── Time format ──
+function formatTime(ts) {
+  if (!ts) return '';
+  const d = ts.toDate ? ts.toDate() : new Date(ts);
+  const now = new Date();
+  const diff = Math.floor((now - d) / 1000);
+  if (diff < 60)  return '剛剛';
+  if (diff < 3600) return Math.floor(diff/60) + ' 分鐘前';
+  if (diff < 86400) return Math.floor(diff/3600) + ' 小時前';
+  return `${d.getMonth()+1}/${d.getDate()} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+}
+
+// ── Render one entry card ──
+function renderCard(data) {
+  const div = document.createElement('div');
+  div.className = 'entry-card';
+  const col = nameToColour(data.name || '?');
+  const initial = (data.name || '?')[0].toUpperCase();
+
+  // Pick a top bar color dynamically based on name so they are diverse
+  const borderColors = ['var(--yellow)', 'var(--coral)', 'var(--mint)', 'var(--purple)', 'var(--blue)'];
+  const nameHash = [...(data.name || '?')].reduce((acc, char) => acc + char.charCodeAt(0), 0);
+  const pickedColor = borderColors[nameHash % borderColors.length];
+
+  const topBar = `<div class="entry-color-top" style="background:${pickedColor}"></div>`;
+  const songSection = data.song ? `
+    <div class="entry-song">
+      🎵 ${escHtml(data.song)}
+    </div>
+  ` : '';
+
+  div.innerHTML = `
+    ${topBar}
+    <div class="entry-body">
+      <div class="entry-meta">
+        <div class="entry-name">
+          <div class="entry-avatar ${col}">${initial}</div>
+          ${escHtml(data.name || '同學')}
+        </div>
+        <div class="entry-time">${formatTime(data.createdAt)}</div>
+      </div>
+      ${songSection}
+      <div class="entry-text">${escHtml(data.text || '')}</div>
+    </div>`;
+  return div;
+}
+
+function escHtml(s) {
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');
+}
+
+// ── Listen to Firestore (real-time) ──
+const q = query(collection(db,'diary-entries'), orderBy('createdAt','desc'));
+onSnapshot(q, snap => {
+  document.getElementById('loadingWrap').style.display = 'none';
+  const grid = document.getElementById('entriesGrid');
+  grid.innerHTML = '';
+  document.getElementById('entryCount').textContent = snap.size + ' 篇';
+  snap.forEach(doc => grid.appendChild(renderCard(doc.data())));
+});
+
+// ── Submit ──
+window.submitEntry = async function() {
+  const name = document.getElementById('nameInput').value.trim();
+  const song = document.getElementById('songInput').value.trim();
+  const text = document.getElementById('textInput').value.trim();
+
+  if (!name) { showToast('請輸入你的名字 😊'); return; }
+  if (!text)  { showToast('請寫下你的感想 ✏️'); return; }
+
+  const btn = document.getElementById('submitBtn');
+  btn.disabled = true;
+  btn.innerHTML = '⏳ 發佈中…';
+
+  try {
+    // Save to Firestore (only with name, song, and text)
+    await addDoc(collection(db,'diary-entries'), {
+      name,
+      song,
+      text,
+      createdAt: serverTimestamp()
+    });
+
+    // Reset form
+    document.getElementById('nameInput').value = '';
+    document.getElementById('songInput').value = '';
+    document.getElementById('textInput').value = '';
+    showToast('✅ 日記發佈成功！');
+
+  } catch (err) {
+    console.error(err);
+    showToast('❌ 發佈失敗，請再試一次');
+  }
+
+  btn.disabled = false;
+  btn.innerHTML = '🚀 發佈日記';
+};
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3000);
+}
+</script>
+
+</body>
+</html>
