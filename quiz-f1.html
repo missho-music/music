@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Miss Ho's Music Lab - 中一樂理任務 🎼</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800;900&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --cream:   #FFFBF2;
+  --yellow:  #FFD94A;
+  --coral:   #FF7B6B;
+  --mint:    #4ECDC4;
+  --purple:  #A78BFA;
+  --blue:    #60A5FA;
+  --dark:    #2D2640;
+  --ink:     #3D3560;
+  --muted:   #8B85A8;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: var(--cream);
+  font-family: 'Poppins', 'Noto Sans TC', sans-serif;
+  color: var(--ink);
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+}
+
+.quiz-container {
+  width: 100%;
+  max-width: 600px;
+  background: white;
+  border: 3.5px solid var(--dark);
+  border-radius: 24px;
+  padding: 36px 32px;
+  box-shadow: 7px 7px 0 var(--dark);
+  position: relative;
+}
+
+/* 進度條樣式 */
+.progress-wrapper {
+  margin-bottom: 24px;
+}
+.progress-text {
+  display: flex;
+  justify-content: space-between;
+  font-weight: 800;
+  font-size: 14px;
+  margin-bottom: 8px;
+  color: var(--muted);
+}
+.progress-bar-outer {
+  width: 100%;
+  height: 16px;
+  background: #f0ede6;
+  border: 2.5px solid var(--dark);
+  border-radius: 999px;
+  overflow: hidden;
+}
+.progress-bar-inner {
+  width: 10%;
+  height: 100%;
+  background: var(--purple);
+  transition: width 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* 題目展示區 */
+.question-box {
+  text-align: center;
+  margin-bottom: 28px;
+}
+.question-title {
+  font-size: 20px;
+  font-weight: 800;
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+.clef-badge {
+  padding: 4px 12px;
+  border: 2px solid var(--dark);
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+}
+.clef-badge.treble { background: var(--yellow); }
+.clef-badge.bass { background: var(--blue); color: white; }
+
+/* 🎼 SVG 五線譜繪製區 */
+.staff-wrapper {
+  background: #FCFBF7;
+  border: 2.5px solid var(--dark);
+  border-radius: 16px;
+  padding: 20px;
+  margin-bottom: 24px;
+  box-shadow: 4px 4px 0 rgba(0,0,0,0.05);
+  display: flex;
+  justify-content: center;
+}
+
+/* 選項按鈕區 */
+.options-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+}
+.option-btn {
+  padding: 16px;
+  border: 2.5px solid var(--dark);
+  border-radius: 16px;
+  font-family: 'Poppins', sans-serif;
+  font-weight: 800;
+  font-size: 20px;
+  background: white;
+  cursor: pointer;
+  box-shadow: 3px 3px 0 var(--dark);
+  transition: all 0.15s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.option-btn:hover {
+  transform: translate(-2px, -2px);
+  box-shadow: 5px 5px 0 var(--dark);
+  background: var(--cream);
+}
+.option-btn:active {
+  transform: translate(1px, 1px);
+  box-shadow: 1px 1px 0 var(--dark);
+}
+
+/* 結算畫面 */
+.result-box {
+  display: none;
+  text-align: center;
+  padding: 20px 0;
+}
+.result-emoji { font-size: 64px; margin-bottom: 16px; }
+.result-score { font-size: 48px; font-weight: 900; color: var(--coral); margin-bottom: 8px; }
+.result-text { font-size: 16px; font-weight: 700; color: var(--muted); margin-bottom: 28px; }
+
+.action-btn {
+  display: inline-block;
+  padding: 14px 28px;
+  border: 2.5px solid var(--dark);
+  border-radius: 16px;
+  font-weight: 800;
+  font-size: 16px;
+  color: var(--dark);
+  background: var(--mint);
+  text-decoration: none;
+  box-shadow: 4px 4px 0 var(--dark);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.action-btn:hover { transform: translate(-2px, -2px); box-shadow: 6px 6px 0 var(--dark); }
+</style>
+</head>
+<body>
+
+<div class="quiz-container">
+  
+  <!-- 📝 測驗主體區塊 -->
+  <div id="quizBody">
+    <!-- 進度條 -->
+    <div class="progress-wrapper">
+      <div class="progress-text">
+        <span id="questionNum">任務第 1 / 10 題</span>
+        <span id="scoreTracker">得分: 0</span>
+      </div>
+      <div class="progress-bar-outer">
+        <div class="progress-bar-inner" id="progressBar"></div>
+      </div>
+    </div>
+
+    <!-- 題目資訊 -->
+    <div class="question-box">
+      <div class="question-title">
+        <span id="clefBadge" class="clef-badge treble">高音譜號</span>
+        <span>請辨認五線譜上的音名是什麼？</span>
+      </div>
+      
+      <!-- 向量五線譜核心渲染區 -->
+      <div class="staff-wrapper">
+        <svg width="300" height="140" id="staffSvg" viewBox="0 0 300 140">
+          <!-- 繪製基礎五線譜 (間距15px，y=30, 45, 60, 75, 90) -->
+          <line x1="10" y1="30" x2="290" y2="30" stroke="#2D2640" stroke-width="2.5"/>
+          <line x1="10" y1="45" x2="290" y2="45" stroke="#2D2640" stroke-width="2.5"/>
+          <line x1="10" y1="60" x2="290" y2="60" stroke="#2D2640" stroke-width="2.5"/>
+          <line x1="10" y1="75" x2="290" y2="75" stroke="#2D2640" stroke-width="2.5"/>
+          <line x1="10" y1="90" x2="290" y2="90" stroke="#2D2640" stroke-width="2.5"/>
+
+          <!-- 譜號文字符號 (由 JS 動態替換 𝄞 或 𝄢) -->
+          <text x="20" y="85" font-size="65" id="svgClef" font-family="serif" fill="#2D2640">𝄞</text>
+
+          <!-- 加線 Ledger Line (JS 自動判斷是否隱藏/顯示) -->
+          <line x1="135" y1="105" x2="175" y2="105" stroke="#2D2640" stroke-width="2.5" id="svgLedger" stroke-dasharray="none"/>
+
+          <!-- 核心音符橢圓形 (JS 動態調整其 cy 高度位置) -->
+          <ellipse cx="155" cy="105" rx="11" ry="8" transform="rotate(-15 155 105)" fill="#2D2640" id="svgNote"/>
+        </svg>
+      </div>
+    </div>
+
+    <!-- 四選一選項區 -->
+    <div class="options-grid">
+      <button class="option-btn" onclick="submitAnswer(this)">A</button>
+      <button class="option-btn" onclick="submitAnswer(this)">B</button>
+      <button class="option-btn" onclick="submitAnswer(this)">C</button>
+      <button class="option-btn" onclick="submitAnswer(this)">D</button>
+    </div>
+  </div>
+
+  <!-- 🎉 挑戰完成結算區塊 -->
+  <div class="result-box" id="resultBody">
+    <div class="result-emoji">🏆</div>
+    <h2>挑戰完成！</h2>
+    <div class="result-score"><span id="finalScore">0</span> 分</div>
+    <div class="result-text" id="resultComment">正在將成績安全登錄至 Miss Ho's 雲端資料庫...</div>
+    <button class="action-btn" onclick="goBackDashboard()">傳回我的控制台 📊</button>
+  </div>
+
+</div>
+
+<!-- Firebase 模組架構 -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDMIul1XcWHOk45JWXh-xcD8nASQW08hNc",
+  authDomain: "music-missho.firebaseapp.com",
+  projectId: "music-missho",
+  storageBucket: "music-missho.firebasestorage.app",
+  messagingSenderId: "542029036241",
+  appId: "1:542029036241:web:2275f6e6c7c9685fb763f0",
+  measurementId: "G-J3CGDLSGZF"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+let currentUid = null;
+
+// 鎖定狀態：防止未登入偷刷
+onAuthStateChanged(auth, (user) => {
+  if (user) {
+    currentUid = user.uid;
+  } else {
+    alert("請先登入帳號後再進行樂理測驗！");
+    window.location.href = "login.html";
+  }
+});
+
+// 🎼 10題精心設計的中一級高低音譜號題目庫
+const questions = [
+  { clef: 'treble', label: '高音譜號', symbol: '𝄞', y: 105, ledger: true,  answer: 'C', options: ['C', 'D', 'E', 'F'] }, // 下加一線 C
+  { clef: 'treble', label: '高音譜號', symbol: '𝄞', y: 75,  ledger: false, answer: 'G', options: ['E', 'F', 'G', 'A'] }, // 第二線 G
+  { clef: 'treble', label: '高音譜號', symbol: '𝄞', y: 30,  ledger: false, answer: 'F', options: ['E', 'F', 'G', 'B'] }, // 第五線 F
+  { clef: 'bass',   label: '低音譜號', symbol: '𝄢', y: 67.5,ledger: false, answer: 'C', options: ['A', 'B', 'C', 'D'] }, // 第二間 C
+  { clef: 'bass',   label: '低音譜號', symbol: '𝄢', y: 90,  ledger: false, answer: 'G', options: ['F', 'G', 'A', 'B'] }, // 第一線 G
+  { clef: 'treble', label: '高音譜號', symbol: '𝄞', y: 90,  ledger: false, answer: 'E', options: ['C', 'D', 'E', 'F'] }, // 第一線 E
+  { clef: 'treble', label: '高音譜號', symbol: '𝄞', y: 67.5,ledger: false, answer: 'A', options: ['G', 'A', 'B', 'C'] }, // 第二間 A
+  { clef: 'bass',   label: '低音譜號', symbol: '𝄢', y: 45,  ledger: false, answer: 'F', options: ['D', 'E', 'F', 'G'] }, // 第四線 F
+  { clef: 'bass',   label: '低音譜號', symbol: '𝄢', y: 52.5,ledger: false, answer: 'E', options: ['C', 'D', 'E', 'F'] }, // 第三間 E
+  { clef: 'treble', label: '高音譜號', symbol: '𝄞', y: 60,  ledger: false, answer: 'B', options: ['A', 'B', 'C', 'D'] }  // 第三線 B
+];
+
+let currentIndex = 0;
+let correctCount = 0;
+
+function loadQuestion() {
+  const q = questions[currentIndex];
+  
+  // 更新介面欄位與進度條
+  document.getElementById('questionNum').innerText = `任務第 ${currentIndex + 1} / 10 題`;
+  document.getElementById('progressBar').style.width = `${(currentIndex + 1) * 10}%`;
+  
+  const badge = document.getElementById('clefBadge');
+  badge.innerText = q.label;
+  badge.className = `clef-badge ${q.clef}`;
+  
+  // 透過操作 SVG 屬性，動態改變音符與譜號位置
+  document.getElementById('svgClef').innerHTML = q.symbol;
+  
+  // 如果是低音譜號，將文字錨點做點微調使其視覺置中
+  if (q.clef === 'bass') {
+    document.getElementById('svgClef').setAttribute('y', '70');
+  } else {
+    document.getElementById('svgClef').setAttribute('y', '85');
+  }
+  
+  // 調整音符橢圓形的 Y 軸高度與旋轉中心點
+  const note = document.getElementById('svgNote');
+  note.setAttribute('cy', q.y);
+  note.setAttribute('transform', `rotate(-15 155 ${q.y})`);
+  
+  // 判斷是否需要繪製中央 C 的加線
+  const ledger = document.getElementById('svgLedger');
+  if (q.ledger) {
+    ledger.style.display = 'block';
+    ledger.setAttribute('y1', q.y);
+    ledger.setAttribute('y2', q.y);
+  } else {
+    ledger.style.display = 'none';
+  }
+  
+  // 渲染按鈕文字
+  const buttons = document.querySelectorAll('.option-btn');
+  buttons.forEach((btn, idx) => {
+    btn.innerText = q.options[idx];
+  });
+}
+
+// 監聽按鈕點擊作答
+window.submitAnswer = function(btn) {
+  const selected = btn.innerText;
+  const correct = questions[currentIndex].answer;
+  
+  if (selected === correct) {
+    correctCount++;
+    document.getElementById('scoreTracker').innerText = `得分: ${correctCount * 10}`;
+  }
+  
+  currentIndex++;
+  
+  if (currentIndex < questions.length) {
+    loadQuestion();
+  } else {
+    showResults();
+  }
+}
+
+// 統計並儲存到 Firebase
+async function showResults() {
+  document.getElementById('quizBody').style.display = 'none';
+  document.getElementById('resultBody').style.display = 'block';
+  
+  const finalScore = correctCount * 10;
+  document.getElementById('finalScore').innerText = finalScore;
+  
+  if (finalScore >= 80) {
+    document.getElementById('resultComment').innerText = "太完美了！妳擁有絕佳的音符直覺！🎶";
+  } else if (finalScore >= 60) {
+    document.getElementById('resultComment').innerText = "做得好！拍子與音名都掌握得很扎實！👍";
+  } else {
+    document.getElementById('resultComment').innerText = "差一點就及格了，再接再厲，多練習幾次吧！💪";
+  }
+
+  // 📥 核心自動化：將數據安全儲存回 Firestore 集合中
+  if (currentUid) {
+    try {
+      await addDoc(collection(db, "scores"), {
+        uid: currentUid,
+        quizName: "中一級：基礎音名挑戰",
+        score: finalScore,
+        correctAnswers: correctCount,
+        totalQuestions: 10,
+        timestamp: serverTimestamp()
+      });
+      console.log("成績已成功登載至雲端資料庫。");
+    } catch (e) {
+      console.error("寫入分數失敗: ", e);
+    }
+  }
+}
+
+// 跳轉回個人儀表板
+window.goBackDashboard = function() {
+  window.location.href = "quiz.html";
+}
+
+// 初始化首發載入題庫
+loadQuestion();
+</script>
+
+</body>
+</html>
