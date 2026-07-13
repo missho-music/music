@@ -378,12 +378,14 @@ footer span { color: var(--coral); }
 
   <!-- AUTH BAR -->
   <div class="auth-bar">
-    <a href="login.html" class="section-tag portal auth-btn">🔐 學生 / 老師登入 Portal</a>
+    <!-- 修正：串接精確網址路徑 -->
+    <a href="https://missho-music.github.io/music/login.html" class="section-tag portal auth-btn">🔐 學生 / 老師登入 Portal</a>
   </div>
 
   <!-- HERO -->
   <div class="hero">
-    <img class="hero-logo" src="data:image/png;base64,...(原本的圖片編碼)..." alt="Miss Ho's Music Lab Logo">
+    <!-- 修正：精確導向妳 GitHub 儲存庫的 logo.jpeg 圖片 -->
+    <img class="hero-logo" src="logo.jpeg" alt="Miss Ho's Music Lab Logo">
     <div class="logo-name">Miss <em>Ho's</em> Music Lab</div>
     <div class="logo-tagline">Interactive Learning Hub</div>
     <h1 class="hero-title">學習<em>音樂</em>，從這裡開始</h1>
@@ -401,8 +403,8 @@ footer span { color: var(--coral); }
     </div>
     <div class="cards">
 
-      <!-- 新增：樂理小測驗卡片 -->
-      <a class="card music-card" href="quiz.html">
+      <!-- 修正：樂理小測驗卡片網址同步改為絕對路徑 -->
+      <a class="card music-card" href="https://missho-music.github.io/music/quiz.html">
         <div class="card-emoji">📝</div>
         <div class="card-title">音樂樂理小測驗</div>
         <div class="card-desc">考考你的樂理知識！包含音高、節奏與記譜法練習，登入後可完整記錄每一次的挑戰成績。</div>
@@ -466,7 +468,26 @@ footer span { color: var(--coral); }
 </footer>
 
 <script>
-// (原本的 Script 內容保持不變)...
+// 補齊：動態生成漂浮背景音符的邏輯
+const noteBg = document.getElementById('noteBg');
+const notes = ['🎵', '🎶', '🎼', '🎹', '🎸', '🎻'];
+
+function createNote() {
+  const span = document.createElement('span');
+  span.innerText = notes[Math.floor(Math.random() * notes.length)];
+  span.style.left = Math.random() * 100 + 'vw';
+  span.style.animationDuration = Math.random() * 5 + 6 + 's'; // 漂浮速度
+  span.style.fontSize = Math.random() * 15 + 15 + 'px'; // 隨機大小
+  noteBg.appendChild(span);
+  
+  // 動態移除避免瀏覽器卡頓
+  setTimeout(() => {
+    span.remove();
+  }, 11000);
+}
+
+// 每 450 毫秒產生一個輕飄飄的音符
+setInterval(createNote, 450);
 </script>
 </body>
 </html>
