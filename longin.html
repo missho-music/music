@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Miss Ho's Music Lab - 登入 / 註冊 🔐</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800;900&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --cream:   #FFFBF2;
+  --yellow:  #FFD94A;
+  --coral:   #FF7B6B;
+  --mint:    #4ECDC4;
+  --purple:  #A78BFA;
+  --blue:    #60A5FA;
+  --dark:    #2D2640;
+  --ink:     #3D3560;
+  --muted:   #8B85A8;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: var(--cream);
+  font-family: 'Poppins', 'Noto Sans TC', sans-serif;
+  color: var(--ink);
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+  position: relative;
+  overflow-x: hidden;
+}
+
+/* Background Blobs */
+body::before, body::after {
+  content: '';
+  position: fixed;
+  border-radius: 50%;
+  filter: blur(80px);
+  opacity: 0.15;
+  pointer-events: none;
+  z-index: 0;
+}
+body::before { width: 400px; height: 400px; background: var(--purple); top: -100px; right: -50px; }
+body::after { width: 350px; height: 350px; background: var(--mint); bottom: -50px; left: -50px; }
+
+.auth-wrapper {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 450px;
+  animation: popIn 0.5s cubic-bezier(0.34,1.56,0.64,1) both;
+}
+
+@keyframes popIn {
+  from { opacity: 0; transform: scale(0.9); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+/* Back Link */
+.back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  text-decoration: none;
+  color: var(--dark);
+  font-weight: 700;
+  font-size: 14px;
+  margin-bottom: 16px;
+  padding: 8px 16px;
+  background: white;
+  border: 2.5px solid var(--dark);
+  border-radius: 999px;
+  box-shadow: 4px 4px 0 var(--dark);
+  transition: all 0.15s;
+}
+.back-link:hover {
+  transform: translate(-2px, -2px);
+  box-shadow: 6px 6px 0 var(--dark);
+}
+.back-link:active {
+  transform: translate(1px, 1px);
+  box-shadow: 2px 2px 0 var(--dark);
+}
+
+/* Main Card */
+.auth-card {
+  background: white;
+  border: 3px solid var(--dark);
+  border-radius: 24px;
+  padding: 36px 32px;
+  box-shadow: 7px 7px 0 var(--dark);
+  position: relative;
+}
+.auth-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 8px;
+  border-radius: 20px 20px 0 0;
+  background: linear-gradient(90deg, var(--purple), var(--coral), var(--yellow));
+}
+
+/* Tabs */
+.auth-tabs {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 28px;
+  border-bottom: 2.5px dashed rgba(45,38,64,0.15);
+  padding-bottom: 20px;
+}
+.tab-btn {
+  flex: 1;
+  padding: 12px;
+  border: 2.5px solid var(--dark);
+  border-radius: 14px;
+  font-weight: 800;
+  font-size: 16px;
+  cursor: pointer;
+  background: white;
+  color: var(--dark);
+  box-shadow: 3px 3px 0 var(--dark);
+  transition: all 0.15s cubic-bezier(0.34,1.56,0.64,1);
+}
+.tab-btn.active {
+  background: var(--yellow);
+  transform: translate(-2px, -2px);
+  box-shadow: 5px 5px 0 var(--dark);
+}
+.tab-btn:not(.active):hover {
+  background: #fdfbf7;
+  transform: translateY(-1px);
+}
+
+/* Form Groups & Layout rows */
+.form-group {
+  margin-bottom: 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.form-row {
+  display: flex;
+  gap: 12px;
+}
+.form-group.register-only {
+  display: none;
+}
+.auth-card.mode-register .form-group.register-only {
+  display: flex;
+}
+
+label {
+  font-weight: 700;
+  font-size: 14px;
+  color: var(--dark);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+input, select {
+  width: 100%;
+  padding: 12px 16px;
+  border: 2.5px solid var(--dark);
+  border-radius: 14px;
+  font-family: inherit;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--dark);
+  background: white;
+  outline: none;
+  transition: all 0.15s;
+}
+input:focus, select:focus {
+  background: #fffdf8;
+  border-color: var(--coral);
+}
+
+select {
+  cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%232D2640' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'></polyline></svg>");
+  background-repeat: no-repeat;
+  background-position: right 16px center;
+  background-size: 16px;
+  padding-right: 40px;
+}
+
+/* Action Button */
+.submit-btn {
+  width: 100%;
+  padding: 14px;
+  border: 2.5px solid var(--dark);
+  border-radius: 16px;
+  font-family: inherit;
+  font-weight: 800;
+  font-size: 17px;
+  color: white;
+  background: var(--purple);
+  cursor: pointer;
+  box-shadow: 4px 4px 0 var(--dark);
+  transition: all 0.18s cubic-bezier(0.34,1.56,0.64,1);
+  margin-top: 10px;
+}
+.submit-btn:hover {
+  transform: translate(-3px, -4px);
+  box-shadow: 7px 8px 0 var(--dark);
+}
+.submit-btn:active {
+  transform: translate(1px, 1px);
+  box-shadow: 3px 3px 0 var(--dark);
+}
+
+/* ── DISCORD/GOOGLE DIVIDER ── */
+.divider {
+  display: flex;
+  align-items: center;
+  text-align: center;
+  margin: 24px 0;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 700;
+}
+.divider::before, .divider::after {
+  content: '';
+  flex: 1;
+  border-bottom: 2px dashed rgba(45,38,64,0.18);
+}
+.divider span {
+  padding: 0 14px;
+}
+
+/* Google Brutalism Button */
+.google-btn {
+  width: 100%;
+  padding: 12px;
+  border: 2.5px solid var(--dark);
+  border-radius: 16px;
+  font-family: inherit;
+  font-weight: 700;
+  font-size: 15px;
+  color: var(--dark);
+  background: white;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  box-shadow: 4px 4px 0 var(--dark);
+  transition: all 0.15s cubic-bezier(0.34,1.56,0.64,1);
+}
+.google-btn:hover {
+  transform: translate(-2px, -3px);
+  box-shadow: 6px 7px 0 var(--dark);
+  background: #fafafa;
+}
+.google-btn:active {
+  transform: translate(1px, 1px);
+  box-shadow: 3px 3px 0 var(--dark);
+}
+.google-icon {
+  width: 18px;
+  height: 18px;
+}
+
+/* Switch Footer Text */
+.switch-text {
+  text-align: center;
+  margin-top: 24px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--muted);
+}
+.switch-text span {
+  color: var(--coral);
+  text-decoration: underline;
+  cursor: pointer;
+  font-weight: 700;
+}
+</style>
+</head>
+<body>
+
+<div class="auth-wrapper">
+  <!-- Back to Home -->
+  <a href="index.html" class="back-link">← 返回首頁</a>
+
+  <!-- Auth Card -->
+  <div class="auth-card" id="authCard">
+    <!-- Tabs -->
+    <div class="auth-tabs">
+      <button type="button" class="tab-btn active" id="tabLogin" onclick="switchMode('login')">🔑 帳號登入</button>
+      <button type="button" class="tab-btn" id="tabRegister" onclick="switchMode('register')">📝 新戶註冊</button>
+    </div>
+
+    <!-- Form -->
+    <form id="authForm" onsubmit="handleAuth(event)">
+      
+      <!-- 👤 姓名 (註冊專用) -->
+      <div class="form-group register-only">
+        <label for="userName">👤 姓名 / 暱稱</label>
+        <input type="text" id="userName" placeholder="請輸入你的真實姓名或稱呼">
+      </div>
+
+      <!-- 🏫 身分選擇 (註冊專用) -->
+      <div class="form-group register-only">
+        <label for="userRole">🏫 您的身分</label>
+        <select id="userRole" onchange="handleRoleChange()">
+          <option value="student" selected>同學 Student</option>
+          <option value="teacher">老師 Teacher</option>
+        </select>
+      </div>
+
+      <!-- 📅 年級與班別區塊 (註冊 + 學生專用並排顯示) -->
+      <div class="form-row register-only" id="studentMetaFields" style="display: none; margin-bottom: 22px;">
+        <div class="form-group" style="flex: 1; margin-bottom: 0;">
+          <label for="userGrade">📅 年級 Grade</label>
+          <select id="userGrade">
+            <option value="F1" selected>中一 (F.1)</option>
+            <option value="F2">中二 (F.2)</option>
+            <option value="F3">中三 (F.3)</option>
+          </select>
+        </div>
+        <div class="form-group" style="flex: 1; margin-bottom: 0;">
+          <label for="userClass">🏫 班別 Class</label>
+          <select id="userClass">
+            <option value="A" selected>A 班</option>
+            <option value="B">B 班</option>
+            <option value="C">C 班</option>
+            <option value="D">D 班</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- ✉️ 電子郵件 -->
+      <div class="form-group">
+        <label for="userEmail">✉️ 電子郵件 Email</label>
+        <input type="email" id="userEmail" placeholder="example@mail.com" required>
+      </div>
+
+      <!-- 🔒 密碼 -->
+      <div class="form-group">
+        <label for="userPassword">🔒 密碼 Password</label>
+        <input type="password" id="userPassword" placeholder="請輸入密碼（至少 6 位數）" required>
+      </div>
+
+      <!-- 送出按鈕 -->
+      <button type="submit" class="submit-btn" id="submitBtn">登入 Lab 🚀</button>
+
+    </form>
+
+    <!-- ── 分隔線 ── -->
+    <div class="divider"><span>或使用第三方快速通道</span></div>
+
+    <!-- 🌐 Google 登入按鈕 -->
+    <button type="button" class="google-btn" onclick="handleGoogleAuth()">
+      <svg class="google-icon" viewBox="0 0 24 24">
+        <path fill="#EA4335" d="M5.266 9.765A7.077 7.077 0 0 1 12 4.909c1.69 0 3.218.6 4.418 1.582L19.91 3C17.782 1.145 15.055 0 12 0 7.33 0 3.35 2.69 1.432 6.614l3.834 3.151z"/>
+        <path fill="#4285F4" d="M23.49 12.275c0-.825-.075-1.616-.213-2.383H12v4.512h6.447a5.51 5.51 0 0 1-2.392 3.616l3.715 2.88c2.172-2.002 3.42-4.947 3.42-8.625z"/>
+        <path fill="#FBBC05" d="M5.266 14.235L1.432 17.386A11.946 11.946 0 0 0 12 24c3.083 0 5.904-1.012 8.056-2.74l-3.715-2.88a7.12 7.12 0 0 1-4.341 1.211c-3.159 0-5.877-2.146-6.734-5.356z"/>
+        <path fill="#34A853" d="M1.432 6.614A11.87 11.87 0 0 0 0 12c0 1.927.457 3.747 1.266 5.386l3.834-3.151c-.225-.675-.353-1.397-.353-2.235 0-.81.12-1.575.33-2.235L1.432 6.614z"/>
+      </svg>
+      Google 帳號快速登入 / 註冊
+    </button>
+
+    <!-- 切換提示 -->
+    <div class="switch-text" id="switchText">
+      還沒有帳號嗎？ <span onclick="switchMode('register')">立即註冊登記</span>
+    </div>
+  </div>
+</div>
+
+<!-- 使用 ES 模組直接在前端網頁運行 Firebase v10 SDK -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+import { getFirestore, doc, getDoc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+// 妳的真實網頁版 Firebase 設定項目
+const firebaseConfig = {
+  apiKey: "AIzaSyDMIul1XcWHOk45JWXh-xcD8nASQW08hNc",
+  authDomain: "music-missho.firebaseapp.com",
+  projectId: "music-missho",
+  storageBucket: "music-missho.firebasestorage.app",
+  messagingSenderId: "542029036241",
+  appId: "1:542029036241:web:2275f6e6c7c9685fb763f0",
+  measurementId: "G-J3CGDLSGZF"
+};
+
+// 初始化 Firebase 服務
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+let currentMode = 'login';
+
+// 監聽身分下拉選單的改變
+window.handleRoleChange = function() {
+  const metaFields = document.getElementById('studentMetaFields');
+  const roleSelect = document.getElementById('userRole');
+  
+  if (currentMode === 'register' && roleSelect.value === 'student') {
+    metaFields.style.display = 'flex';
+  } else {
+    metaFields.style.display = 'none';
+  }
+}
+
+// 切換 登入/註冊 介面邏輯
+window.switchMode = function(mode) {
+  currentMode = mode;
+  const card = document.getElementById('authCard');
+  const tabLogin = document.getElementById('tabLogin');
+  const tabRegister = document.getElementById('tabRegister');
+  const submitBtn = document.getElementById('submitBtn');
+  const switchText = document.getElementById('switchText');
+  const nameInput = document.getElementById('userName');
+
+  if (mode === 'register') {
+    card.classList.add('mode-register');
+    tabLogin.classList.remove('active');
+    tabRegister.classList.add('active');
+    submitBtn.innerText = '完成登記並註冊 🎉';
+    submitBtn.style.background = 'var(--coral)';
+    switchText.innerHTML = '已經有帳號了？ <span onclick="switchMode(\'login\')">返回登入</span>';
+    nameInput.setAttribute('required', 'required');
+    window.handleRoleChange();
+  } else {
+    card.classList.remove('mode-register');
+    tabLogin.classList.add('active');
+    tabRegister.classList.remove('active');
+    submitBtn.innerText = '登入 Lab 🚀';
+    submitBtn.style.background = 'var(--purple)';
+    switchText.innerHTML = '還沒有帳號嗎？ <span onclick="switchMode(\'register\')">立即註冊登記</span>';
+    nameInput.removeAttribute('required');
+    document.getElementById('studentMetaFields').style.display = 'none';
+  }
+}
+
+// 🌐 處理 Google 快速彈出視窗登入
+window.handleGoogleAuth = function() {
+  const provider = new GoogleAuthProvider();
+  
+  signInWithPopup(auth, provider)
+    .then((result) => {
+      const user = result.user;
+      const uid = user.uid;
+      
+      // 檢查此 Google 帳戶是否已存在於 Firestore 中
+      getDoc(doc(db, 'users', uid)).then((docSnap) => {
+        if (docSnap.exists()) {
+          const userData = docSnap.data();
+          alert(`歡迎回來，${userData.name}！`);
+          if (userData.role === 'teacher') {
+            window.location.href = 'teacher.html';
+          } else {
+            window.location.href = 'quiz.html';
+          }
+        } else {
+          // 如果是第一次用 Google 登入的新用戶，自動建立為學生資料，預設中一 A 班
+          const defaultName = user.displayName || "Google 同學";
+          setDoc(doc(db, 'users', uid), {
+            name: defaultName,
+            email: user.email,
+            role: 'student',
+            grade: 'F1',
+            class: 'A',
+            createdAt: serverTimestamp()
+          })
+          .then(() => {
+            alert(`首次登入成功！已為您自動登記為 中一 A 班同學：${defaultName}。\n若需要修正年級班別，請聯絡老師進行後台修改。`);
+            window.location.href = 'quiz.html';
+          });
+        }
+      });
+    })
+    .catch((error) => {
+      alert('Google 登入失敗：' + error.message);
+    });
+}
+
+// 監聽傳統 Email 表單送出
+window.handleAuth = function(e) {
+  e.preventDefault();
+  const email = document.getElementById('userEmail').value;
+  const password = document.getElementById('userPassword').value;
+  
+  if (currentMode === 'login') {
+    signInWithEmailAndPassword(auth, email, password)
+      .then((userCredential) => {
+        const uid = userCredential.user.uid;
+        getDoc(doc(db, 'users', uid)).then((docSnap) => {
+          if (docSnap.exists()) {
+            const userData = docSnap.data();
+            alert(`歡迎回來，${userData.name}！`);
+            if (userData.role === 'teacher') {
+              window.location.href = 'teacher.html';
+            } else {
+              window.location.href = 'quiz.html';
+            }
+          } else {
+            window.location.href = 'quiz.html';
+          }
+        });
+      })
+      .catch((error) => { alert('登入失敗：' + error.message); });
+  } else {
+    const name = document.getElementById('userName').value;
+    const role = document.getElementById('userRole').value;
+    const grade = role === 'student' ? document.getElementById('userGrade').value : 'N/A';
+    const className = role === 'student' ? document.getElementById('userClass').value : 'N/A';
+    
+    createUserWithEmailAndPassword(auth, email, password)
+      .then((userCredential) => {
+        const uid = userCredential.user.uid;
+        setDoc(doc(db, 'users', uid), {
+          name: name,
+          email: email,
+          role: role,
+          grade: grade,
+          class: className,
+          createdAt: serverTimestamp()
+        })
+        .then(() => {
+          alert('註冊登記成功！已為您自動登入。');
+          if (role === 'teacher') {
+            window.location.href = 'teacher.html';
+          } else {
+            window.location.href = 'quiz.html';
+          }
+        })
+        .catch((firestoreError) => { alert('帳號已建立，但資料庫設定失敗：' + firestoreError.message); });
+      })
+      .catch((error) => { alert('註冊失敗：' + error.message); });
+  }
+}
+</script>
+</body>
+</html>
