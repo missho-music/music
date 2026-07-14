@@ -43,10 +43,7 @@ body {
   position: relative;
 }
 
-/* 進度條與計時器樣式 */
-.progress-wrapper {
-  margin-bottom: 24px;
-}
+.progress-wrapper { margin-bottom: 24px; }
 .progress-text {
   display: flex;
   justify-content: space-between;
@@ -80,11 +77,7 @@ body {
   transition: width 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
-/* 題目展示區 */
-.question-box {
-  text-align: center;
-  margin-bottom: 28px;
-}
+.question-box { text-align: center; margin-bottom: 28px; }
 .question-title {
   font-size: 16px;
   font-weight: 800;
@@ -104,7 +97,6 @@ body {
   color: white;
 }
 
-/* 🧱 粗獷主義字體題目卡 */
 .rhythm-card {
   background: #FCFBF7;
   border: 3px solid var(--dark);
@@ -119,19 +111,9 @@ body {
   position: relative;
   word-wrap: break-word;
 }
-.rhythm-card span {
-  color: var(--coral);
-  text-decoration: underline;
-  font-size: 25px;
-  padding: 0 8px;
-}
+.rhythm-card span { color: var(--coral); text-decoration: underline; font-size: 25px; padding: 0 8px; }
 
-/* 選項按鈕區 */
-.options-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 16px;
-}
+.options-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
 .option-btn {
   padding: 16px;
   border: 2.5px solid var(--dark);
@@ -149,17 +131,9 @@ body {
   box-shadow: 5px 5px 0 var(--dark);
   background: var(--cream);
 }
-.option-btn:active {
-  transform: translate(1px, 1px);
-  box-shadow: 1px 1px 0 var(--dark);
-}
+.option-btn:active { transform: translate(1px, 1px); box-shadow: 1px 1px 0 var(--dark); }
 
-/* 結算畫面 */
-.result-box {
-  display: none;
-  text-align: center;
-  padding: 20px 0;
-}
+.result-box { display: none; text-align: center; padding: 20px 0; }
 .result-emoji { font-size: 64px; margin-bottom: 16px; }
 .result-score { font-size: 48px; font-weight: 900; color: var(--coral); margin-bottom: 8px; }
 .result-text { font-size: 16px; font-weight: 700; color: var(--muted); margin-bottom: 28px; }
@@ -184,10 +158,7 @@ body {
 <body>
 
 <div class="quiz-container">
-  
-  <!-- 📝 測驗主體區塊 -->
   <div id="quizBody">
-    <!-- 進度條與計時器 -->
     <div class="progress-wrapper">
       <div class="progress-text">
         <span id="questionNum">任務第 1 / 10 題</span>
@@ -199,20 +170,14 @@ body {
       </div>
     </div>
 
-    <!-- 題目資訊 -->
     <div class="question-box">
       <div class="question-title">
         <span class="topic-badge">拍子與節奏 Rhythm</span>
         <span>請選出最正確的數字填入空格：</span>
       </div>
-      
-      <!-- 幾何大字體題目顯示區 -->
-      <div class="rhythm-card" id="questionText">
-        Loading question...
-      </div>
+      <div class="rhythm-card" id="questionText">Loading question...</div>
     </div>
 
-    <!-- 四選一選項區 -->
     <div class="options-grid">
       <button class="option-btn" onclick="submitAnswer(this)">-</button>
       <button class="option-btn" onclick="submitAnswer(this)">-</button>
@@ -221,22 +186,19 @@ body {
     </div>
   </div>
 
-  <!-- 🎉 挑戰完成結算區塊 -->
   <div class="result-box" id="resultBody">
     <div class="result-emoji" id="resultEmoji">🏆</div>
     <h2>挑戰完成！</h2>
     <div class="result-score"><span id="finalScore">0</span> 分</div>
-    <div class="result-text" id="resultComment">正在將成績安全登錄至 Miss Ho's 雲端資料庫...</div>
+    <div class="result-text" id="resultComment">正在將高級任務成績登錄至雲端...</div>
     <button class="action-btn" onclick="goBackDashboard()">傳回我的控制台 📊</button>
   </div>
-
 </div>
 
-<!-- Firebase 模組架構 -->
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+import { getFirestore, collection, addDoc, doc, updateDoc, increment, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyDMIul1XcWHOk45JWXh-xcD8nASQW08hNc",
@@ -272,7 +234,6 @@ function startTimer() {
     const minutes = Math.floor(timeLeft / 60).toString().padStart(2, '0');
     const seconds = (timeLeft % 60).toString().padStart(2, '0');
     document.getElementById('timerDisplay').innerText = `⏱️ ${minutes}:${seconds}`;
-    
     if (timeLeft <= 0) {
       clearInterval(timerInterval);
       alert("時間到！系統已為妳自動提交考卷。");
@@ -281,19 +242,25 @@ function startTimer() {
   }, 1000);
 }
 
-// 🎲 終極重裝版：45 題全方位樂理拍子庫（包含基礎題、時值換算、進階附點與拍號分類）
 const questionPool = [
-  // ── 類別一：拍號定義基礎題 ──
   { text: "In 2/4, there are <span>______</span> crotchet (四分音符) beats in every measure.", answer: "2", options: ["2", "3", "4", "1"] },
   { text: "In 9/8, there are <span>______</span> quaver (八分音符) beats in every measure.", answer: "9", options: ["3", "6", "9", "12"] },
   { text: "In 4/4, there are <span>______</span> Semibreve (全音符) beats in every measure.", answer: "1", options: ["1", "2", "4", "8"] },
+  { text: "A Semibreve (全音符) equals to <span>______</span> quavers (八分音符).", answer: "8", options: ["2", "4", "8", "16"] },
+  { text: "A Minim (二分音符) equals to <span>______</span> semiquavers (十六分音符).", answer: "8", options: ["4", "6", "8", "16"] },
   { text: "In 3/4, there are <span>______</span> crotchet (四分音符) beats in every measure.", answer: "3", options: ["2", "3", "4", "6"] },
   { text: "In 6/8, there are <span>______</span> quaver (八分音符) beats in every measure.", answer: "6", options: ["3", "4", "6", "8"] },
-  { text: "In 12/8, there are <span>______</span> quaver (八分音符) beats in every measure.", answer: "12", options: ["6", "8", "12", "16"] },
+  { text: "A Crotchet (四分音符) equals to <span>______</span> semiquavers (十六分音符).", answer: "4", options: ["2", "4", "8", "16"] },
+  { text: "A Minim (二分音符) equals to <span>______</span> crotchets (四分音符).", answer: "2", options: ["2", "3", "4", "8"] },
+  { text: "In 3/8, there are <span>______</span> quaver (八分音符) beats in every measure.", answer: "3", options: ["1", "2", "3", "6"] },
+  { text: "A Semibreve (全音符) equals to <span>______</span> minims (二分音符).", answer: "2", options: ["2", "4", "8", "16"] },
+  { text: "A Crotchet (四分音符) equals to <span>______</span> quavers (八分音符).", answer: "2", options: ["2", "3", "4", "8"] },
   { text: "In 2/2, there are <span>______</span> minim (二分音符) beats in every measure.", answer: "2", options: ["1", "2", "4", "8"] },
+  { text: "A Dotted Crotchet (附點四分音符) equals to <span>______</span> quavers (八分音符).", answer: "3", options: ["2", "3", "4", "6"] },
+  { text: "A Dotted Minim (附點二分音符) equals to <span>______</span> crotchets (四分音符).", answer: "3", options: ["2", "3", "4", "6"] },
+  { text: "In 12/8, there are <span>______</span> quaver (八分音符) beats in every measure.", answer: "12", options: ["6", "8", "12", "16"] },
   { text: "In 3/2, there are <span>______</span> minim (二分音符) beats in every measure.", answer: "3", options: ["2", "3", "4", "6"] },
   { text: "In 4/2, there are <span>______</span> minim (二分音符) beats in every measure.", answer: "4", options: ["2", "4", "6", "8"] },
-  { text: "In 3/8, there are <span>______</span> quaver (八分音符) beats in every measure.", answer: "3", options: ["1", "2", "3", "6"] },
   { text: "In 5/4, there are <span>______</span> crotchet (四分音符) beats in every measure.", answer: "5", options: ["3", "4", "5", "6"] },
   { text: "In 6/4, there are <span>______</span> crotchet (四分音符) beats in every measure.", answer: "6", options: ["4", "6", "8", "12"] },
   { text: "In 4/4, there are <span>______</span> minim (二分音符) beats worth of duration in every measure.", answer: "2", options: ["1", "2", "4", "8"] },
@@ -302,42 +269,26 @@ const questionPool = [
   { text: "In 6/8, there are <span>______</span> dotted crotchet (附點四分音符) main beats in every measure.", answer: "2", options: ["2", "3", "4", "6"] },
   { text: "In 9/8, there are <span>______</span> dotted crotchet (附點四分音符) main beats in every measure.", answer: "3", options: ["2", "3", "4", "9"] },
   { text: "In 12/8, there are <span>______</span> dotted crotchet (附點四分音符) main beats in every measure.", answer: "4", options: ["3", "4", "6", "12"] },
-
-  // ── 類別二：基礎音符價值等量換算 ──
-  { text: "A Semibreve (全音符) equals to <span>______</span> quavers (八分音符).", answer: "8", options: ["2", "4", "8", "16"] },
-  { text: "A Minim (二分音符) equals to <span>______</span> semiquavers (十六分音符).", answer: "8", options: ["4", "6", "8", "16"] },
-  { text: "A Crotchet (四分音符) equals to <span>______</span> semiquavers (十六分音符).", answer: "4", options: ["2", "4", "8", "16"] },
-  { text: "A Minim (二分音符) equals to <span>______</span> crotchets (四分音符).", answer: "2", options: ["2", "3", "4", "8"] },
-  { text: "A Semibreve (全音符) equals to <span>______</span> minims (二分音符).", answer: "2", options: ["2", "4", "8", "16"] },
-  { text: "A Crotchet (四分音符) equals to <span>______</span> quavers (八分音符).", answer: "2", options: ["2", "3", "4", "8"] },
-  { text: "A Semibreve (全音符) equals to <span>______</span> crotchets (四分音符).", answer: "4", options: ["2", "4", "8", "16"] },
   { text: "A Semibreve (全音符) equals to <span>______</span> semiquavers (十六分音符).", answer: "16", options: ["8", "12", "16", "32"] },
-  { text: "A Semibreve (全音符) equals to <span>______</span> demisemiquavers (三記二分音符).", answer: "32", options: ["16", "32", "64", "128"] },
+  { text: "A Semibreve (全音符) equals to <span>______</span> demisemiquavers (三十二分音符).", answer: "32", options: ["16", "32", "64", "128"] },
   { text: "A Minim (二分音符) equals to <span>______</span> quavers (八分音符).", answer: "4", options: ["2", "4", "8", "16"] },
   { text: "A Minim (二分音符) equals to <span>______</span> demisemiquavers (三十二分音符).", answer: "16", options: ["8", "16", "32", "64"] },
   { text: "A Crotchet (四分音符) equals to <span>______</span> demisemiquavers (三十二分音符).", answer: "8", options: ["4", "8", "16", "32"] },
   { text: "A Quaver (八分音符) equals to <span>______</span> semiquavers (十六分音符).", answer: "2", options: ["2", "4", "8", "16"] },
   { text: "A Quaver (八分音符) equals to <span>______</span> demisemiquavers (三十二分音符).", answer: "4", options: ["2", "4", "8", "16"] },
   { text: "A Semiquaver (十六分音符) equals to <span>______</span> demisemiquavers (三十二分音符).", answer: "2", options: ["2", "4", "8", "12"] },
-
-  // ── 類別三：進階附點音符時值裂變 ──
   { text: "A Dotted Semibreve (附點全音符) equals to <span>______</span> minims (二分音符).", answer: "3", options: ["2", "3", "4", "6"] },
   { text: "A Dotted Semibreve (附點全音符) equals to <span>______</span> crotchets (四分音符).", answer: "6", options: ["4", "6", "8", "12"] },
-  { text: "A Dotted Minim (附點二分音符) equals to <span>______</span> crotchets (四分音符).", answer: "3", options: ["2", "3", "4", "6"] },
   { text: "A Dotted Minim (附點二分音符) equals to <span>______</span> quavers (八分音符).", answer: "6", options: ["4", "6", "8", "12"] },
-  { text: "A Dotted Crotchet (附點四分音符) equals to <span>______</span> quavers (八分音符).", answer: "3", options: ["2", "3", "4", "6"] },
   { text: "A Dotted Crotchet (附點四分音符) equals to <span>______</span> semiquavers (十六分音符).", answer: "6", options: ["4", "6", "8", "12"] },
   { text: "A Dotted Quaver (附點八分音符) equals to <span>______</span> semiquavers (十六分音符).", answer: "3", options: ["2", "3", "4", "6"] },
   { text: "A Dotted Quaver (附點八分音符) equals to <span>______</span> demisemiquavers (三十二分音符).", answer: "6", options: ["4", "6", "8", "12"] },
-
-  // ── 類別四：高階拍號分類概念 ──
   { text: "<span>______</span> is an example of a Simple Triple (單三拍子) time signature.", answer: "3/4", options: ["2/4", "3/4", "4/4", "6/8"] },
   { text: "<span>______</span> is an example of a Compound Duple (複二拍子) time signature.", answer: "6/8", options: ["2/4", "3/4", "6/8", "9/8"] },
   { text: "<span>______</span> is an example of a Compound Triple (複三拍子) time signature.", answer: "9/8", options: ["3/4", "6/8", "9/8", "12/8"] },
   { text: "<span>______</span> is an example of a Compound Quadruple (複四拍子) time signature.", answer: "12/8", options: ["4/4", "6/8", "9/8", "12/8"] }
 ];
 
-// 🔄 Fisher-Yates 隨機洗牌演算法
 function shuffleArray(array) {
   for (let i = array.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
@@ -346,39 +297,29 @@ function shuffleArray(array) {
   return array;
 }
 
-// 🎰 從 45 題重裝題庫中洗牌並隨機抽出 10 題做為當次試卷
 const activeQuestions = shuffleArray([...questionPool]).slice(0, 10);
-
 let currentIndex = 0;
 let correctCount = 0;
 
 function loadQuestion() {
   const q = activeQuestions[currentIndex];
-  
   document.getElementById('questionNum').innerText = `任務第 ${currentIndex + 1} / 10 題`;
   document.getElementById('progressBar').style.width = `${(currentIndex + 1) * 10}%`;
   document.getElementById('questionText').innerHTML = q.text;
   
-  // 洗牌目前題目的四個選項，打亂 ABCD 的順序
   const shuffledOptions = shuffleArray([...q.options]);
-  
   const buttons = document.querySelectorAll('.option-btn');
-  buttons.forEach((btn, idx) => {
-    btn.innerText = shuffledOptions[idx];
-  });
+  buttons.forEach((btn, idx) => { btn.innerText = shuffledOptions[idx]; });
 }
 
 window.submitAnswer = function(btn) {
   const selected = btn.innerText;
   const correct = activeQuestions[currentIndex].answer;
-  
   if (selected === correct) {
     correctCount++;
     document.getElementById('scoreTracker').innerText = `得分: ${correctCount * 10}`;
   }
-  
   currentIndex++;
-  
   if (currentIndex < activeQuestions.length) {
     loadQuestion();
   } else {
@@ -390,23 +331,25 @@ window.submitAnswer = function(btn) {
 async function showResults(isTimeout = false) {
   document.getElementById('quizBody').style.display = 'none';
   document.getElementById('resultBody').style.display = 'block';
-  
   const finalScore = correctCount * 10;
   document.getElementById('finalScore').innerText = finalScore;
   
+  const goldEarned = finalScore; 
+  const expEarned = finalScore; 
+
   if (isTimeout) {
     document.getElementById('resultEmoji').innerText = '⏰';
-    document.getElementById('resultComment').innerText = "時間到了！但妳的努力已成功登記至系統，繼續保持節奏感！";
+    document.getElementById('resultComment').innerText = "時間到了！但妳的努力已成功登記至系統並換算為獎勵！";
   } else {
     if (finalScore >= 80) {
       document.getElementById('resultEmoji').innerText = '🏆';
-      document.getElementById('resultComment').innerText = "太厲害了！妳對節奏與時值的換算簡集瞭若指掌！🥁";
+      document.getElementById('resultComment').innerText = `太厲害了！成功斬獲 ${goldEarned} 金幣與 ${expEarned} 經驗值！🥁`;
     } else if (finalScore >= 60) {
       document.getElementById('resultEmoji').innerText = '👍';
-      document.getElementById('resultComment').innerText = "安全過關！時值概念很清晰，表現不錯喔！";
+      document.getElementById('resultComment').innerText = `安全過關！順利贏得 ${goldEarned} 金幣與 ${expEarned} 經驗值！`;
     } else {
       document.getElementById('resultEmoji').innerText = '💪';
-      document.getElementById('resultComment').innerText = "拍子有點小混亂，多挑戰幾次，妳一定能摸透它的！";
+      document.getElementById('resultComment').innerText = `本次獲得 ${goldEarned} 金幣與 ${expEarned} 經驗值，多挑戰幾次，妳一定能摸透它的！`;
     }
   }
 
@@ -414,25 +357,26 @@ async function showResults(isTimeout = false) {
     try {
       await addDoc(collection(db, "scores"), {
         uid: currentUid,
-        quizName: "中二級：調性與節奏進階",
+        quizName: "中二級：拍號與音符價值計算",
         score: finalScore,
         correctAnswers: correctCount,
         totalQuestions: 10,
         timestamp: serverTimestamp()
       });
-      console.log("中二級重裝版成績上傳完成。");
+
+      const userRef = doc(db, 'users', currentUid);
+      await updateDoc(userRef, {
+        gold: increment(goldEarned),
+        exp: increment(expEarned)
+      });
     } catch (e) {
       console.error("上傳失敗: ", e);
     }
   }
 }
 
-window.goBackDashboard = function() {
-  window.location.href = "quiz.html";
-}
-
+window.goBackDashboard = function() { window.location.href = "quiz.html"; }
 loadQuestion();
 </script>
-
 </body>
 </html>
