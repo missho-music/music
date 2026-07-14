@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Miss Ho's Music Lab - 中三樂理任務 🎼</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800;900&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --cream:   #FFFBF2;
+  --yellow:  #FFD94A;
+  --coral:   #FF7B6B;
+  --mint:    #4ECDC4;
+  --purple:  #A78BFA;
+  --blue:    #60A5FA;
+  --dark:    #2D2640;
+  --ink:     #3D3560;
+  --muted:   #8B85A8;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: var(--cream);
+  font-family: 'Poppins', 'Noto Sans TC', sans-serif;
+  color: var(--ink);
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+}
+
+.quiz-container {
+  width: 100%;
+  max-width: 600px;
+  background: white;
+  border: 3.5px solid var(--dark);
+  border-radius: 24px;
+  padding: 36px 32px;
+  box-shadow: 7px 7px 0 var(--dark);
+  position: relative;
+}
+
+/* 進度條與計時器樣式 */
+.progress-wrapper {
+  margin-bottom: 24px;
+}
+.progress-text {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-weight: 800;
+  font-size: 14px;
+  margin-bottom: 8px;
+  color: var(--muted);
+}
+.timer-box {
+  background: #FFF0F0;
+  color: var(--coral);
+  border: 2px solid var(--dark);
+  padding: 4px 12px;
+  border-radius: 999px;
+  font-size: 14px;
+  box-shadow: 2px 2px 0 var(--dark);
+}
+.progress-bar-outer {
+  width: 100%;
+  height: 16px;
+  background: #f0ede6;
+  border: 2.5px solid var(--dark);
+  border-radius: 999px;
+  overflow: hidden;
+}
+.progress-bar-inner {
+  width: 10%;
+  height: 100%;
+  background: var(--purple);
+  transition: width 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* 題目展示區 */
+.question-box {
+  text-align: center;
+  margin-bottom: 28px;
+}
+.question-title {
+  font-size: 16px;
+  font-weight: 800;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+.topic-badge {
+  padding: 4px 12px;
+  border: 2px solid var(--dark);
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+  background: var(--coral);
+  color: white;
+}
+
+/* 🧱 粗獷主義字體題目卡 */
+.analysis-card {
+  background: #FCFBF7;
+  border: 3px solid var(--dark);
+  border-radius: 20px;
+  padding: 36px 24px;
+  margin-bottom: 24px;
+  box-shadow: 5px 5px 0 var(--dark);
+  font-size: 20px;
+  font-weight: 800;
+  line-height: 1.6;
+  color: var(--dark);
+  position: relative;
+  word-wrap: break-word;
+}
+.analysis-card span {
+  color: var(--purple);
+  text-decoration: underline;
+  font-size: 24px;
+  padding: 0 8px;
+}
+
+/* 選項按鈕區 */
+.options-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+}
+.option-btn {
+  padding: 16px;
+  border: 2.5px solid var(--dark);
+  border-radius: 16px;
+  font-family: 'Poppins', 'Noto Sans TC', sans-serif;
+  font-weight: 800;
+  font-size: 16px;
+  background: white;
+  cursor: pointer;
+  box-shadow: 3px 3px 0 var(--dark);
+  transition: all 0.15s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.option-btn:hover {
+  transform: translate(-2px, -2px);
+  box-shadow: 5px 5px 0 var(--dark);
+  background: var(--cream);
+}
+.option-btn:active {
+  transform: translate(1px, 1px);
+  box-shadow: 1px 1px 0 var(--dark);
+}
+
+/* 結算畫面 */
+.result-box {
+  display: none;
+  text-align: center;
+  padding: 20px 0;
+}
+.result-emoji { font-size: 64px; margin-bottom: 16px; }
+.result-score { font-size: 48px; font-weight: 900; color: var(--purple); margin-bottom: 8px; }
+.result-text { font-size: 16px; font-weight: 700; color: var(--muted); margin-bottom: 28px; }
+
+.action-btn {
+  display: inline-block;
+  padding: 14px 28px;
+  border: 2.5px solid var(--dark);
+  border-radius: 16px;
+  font-weight: 800;
+  font-size: 16px;
+  color: var(--dark);
+  background: var(--mint);
+  text-decoration: none;
+  box-shadow: 4px 4px 0 var(--dark);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.action-btn:hover { transform: translate(-2px, -2px); box-shadow: 6px 6px 0 var(--dark); }
+</style>
+</head>
+<body>
+
+<div class="quiz-container">
+  
+  <!-- 📝 測驗主體區塊 -->
+  <div id="quizBody">
+    <!-- 進度條與計時器 -->
+    <div class="progress-wrapper">
+      <div class="progress-text">
+        <span id="questionNum">任務第 1 / 10 題</span>
+        <span id="timerDisplay" class="timer-box">⏱️ 03:00</span>
+        <span id="scoreTracker">得分: 0</span>
+      </div>
+      <div class="progress-bar-outer">
+        <div class="progress-bar-inner" id="progressBar"></div>
+      </div>
+    </div>
+
+    <!-- 題目資訊 -->
+    <div class="question-box">
+      <div class="question-title">
+        <span class="topic-badge">和弦與綜合分析 Harmony</span>
+        <span>請選出最正確的選項填入空格：</span>
+      </div>
+      
+      <!-- 幾何大字體題目顯示區 -->
+      <div class="analysis-card" id="questionText">
+        正在調音中...
+      </div>
+    </div>
+
+    <!-- 四選一選項區 -->
+    <div class="options-grid">
+      <button class="option-btn" onclick="submitAnswer(this)">-</button>
+      <button class="option-btn" onclick="submitAnswer(this)">-</button>
+      <button class="option-btn" onclick="submitAnswer(this)">-</button>
+      <button class="option-btn" onclick="submitAnswer(this)">-</button>
+    </div>
+  </div>
+
+  <!-- 🎉 挑戰完成結算區塊 -->
+  <div class="result-box" id="resultBody">
+    <div class="result-emoji" id="resultEmoji">🏆</div>
+    <h2>挑戰完成！</h2>
+    <div class="result-score"><span id="finalScore">0</span> 分</div>
+    <div class="result-text" id="resultComment">正在將高級任務成績登錄至雲端...</div>
+    <button class="action-btn" onclick="goBackDashboard()">傳回我的控制台 📊</button>
+  </div>
+
+</div>
+
+<!-- Firebase 模組架構 -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDMIul1XcWHOk45JWXh-xcD8nASQW08hNc",
+  authDomain: "music-missho.firebaseapp.com",
+  projectId: "music-missho",
+  storageBucket: "music-missho.firebasestorage.app",
+  messagingSenderId: "542029036241",
+  appId: "1:542029036241:web:2275f6e6c7c9685fb763f0",
+  measurementId: "G-J3CGDLSGZF"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+let currentUid = null;
+let timerInterval = null;
+let timeLeft = 180; 
+
+onAuthStateChanged(auth, (user) => {
+  if (user) {
+    currentUid = user.uid;
+    startTimer(); 
+  } else {
+    alert("請先登入帳號後再進行樂理測驗！");
+    window.location.href = "login.html";
+  }
+});
+
+function startTimer() {
+  timerInterval = setInterval(() => {
+    timeLeft--;
+    const minutes = Math.floor(timeLeft / 60).toString().padStart(2, '0');
+    const seconds = (timeLeft % 60).toString().padStart(2, '0');
+    document.getElementById('timerDisplay').innerText = `⏱️ ${minutes}:${seconds}`;
+    
+    if (timeLeft <= 0) {
+      clearInterval(timerInterval);
+      alert("時間到！系統已為妳自動提交中三級考卷。");
+      showResults(true); 
+    }
+  }, 1000);
+}
+
+// 🎲 中三級專屬：25 題和弦、轉位、音程與終止式高階題庫
+const questionPool = [
+  // ── 類別一：和弦結構與羅馬數字 ──
+  { text: "A Major triad consists of a root, a <span>______</span> third, and a perfect fifth.", answer: "Major (大)", options: ["Major (大)", "Minor (小)", "Augmented (增)", "Diminished (減)"] },
+  { text: "A Minor triad consists of a root, a <span>______</span> third, and a perfect fifth.", answer: "Minor (小)", options: ["Major (大)", "Minor (小)", "Augmented (增)", "Diminished (減)"] },
+  { text: "An Augmented (增) triad consists of a root, a major third, and an <span>______</span> fifth.", answer: "Augmented (增)", options: ["Perfect (完全)", "Diminished (減)", "Augmented (增)", "Minor (小)"] },
+  { text: "A Diminished (減) triad consists of a root, a minor third, and a <span>______</span> fifth.", answer: "Diminished (減)", options: ["Perfect (完全)", "Diminished (減)", "Augmented (增)", "Major (大)"] },
+  { text: "In C major key, the chord V (属和弦) is a <span>______</span> triad.", answer: "G Major (G大調三和弦)", options: ["F Major", "G Major", "A Minor", "E Minor"] },
+  { text: "In F major key, the chord IV (下属和弦) is a <span>______</span> triad.", answer: "Bb Major (降B大調)", options: ["B Major", "Bb Major", "C Major", "G Minor"] },
+  { text: "In G major key, the chord ii (二級和弦) is a <span>______</span> triad.", answer: "A Minor (A小調)", options: ["A Major", "A Minor", "B Minor", "C Major"] },
+  { text: "In A harmonic minor (和聲小調), the chord V is always a <span>______</span> triad due to the raised 7th.", answer: "E Major (E大調)", options: ["E Minor", "E Major", "D Minor", "G Major"] },
+  { text: "The triad built on the 7th degree (導音) of any Major scale is always a <span>______</span> triad.", answer: "Diminished (減)", options: ["Major (大)", "Minor (小)", "Diminished (減)", "Augmented (增)"] },
+  { text: "In D major key, the chord vi (六級和弦) is a <span>______</span> triad.", answer: "B Minor (B小調)", options: ["B Major", "B Minor", "F# Minor", "A Major"] },
+
+  // ── 類別二：轉位和弦概念 (Inversions) ──
+  { text: "The first inversion (第一轉位) of a triad has the <span>______</span> in the bass line.", answer: "Third (三音)", options: ["Root (根音)", "Third (三音)", "Fifth (五音)", "Seventh (七音)"] },
+  { text: "The second inversion (第二轉位) of a triad has the <span>______</span> in the bass line.", answer: "Fifth (五音)", options: ["Root (根音)", "Third (三音)", "Fifth (五音)", "Seventh (七音)"] },
+  { text: "If a C Major chord (C-E-G) has the note E at the bottom bass, it is in <span>______</span>.", answer: "First Inversion", options: ["Root Position", "First Inversion", "Second Inversion", "Third Inversion"] },
+  { text: "If a G Major chord (G-B-D) has the note D at the bottom bass, it is in <span>______</span>.", answer: "Second Inversion", options: ["Root Position", "First Inversion", "Second Inversion", "Third Inversion"] },
+  { text: "A chord in Root Position (原位) has the <span>______</span> as its lowest sounding note.", answer: "Root (根音)", options: ["Root (根音)", "Third (三音)", "Fifth (五音)", "Bass"] },
+
+  // ── 類別三：高階音程辨識 (Intervals) ──
+  { text: "The musical interval from C to G is called a <span>______</span>.", answer: "Perfect 5th (完全五度)", options: ["Major 5th", "Perfect 5th (完全五度)", "Minor 5th", "Diminished 5th"] },
+  { text: "The musical interval from C to Eb is called a <span>______</span>.", answer: "Minor 3rd (小三度)", options: ["Major 3rd", "Minor 3rd (小三度)", "Perfect 3rd", "Diminished 3rd"] },
+  { text: "The musical interval from C to E is called a <span>______</span>.", answer: "Major 3rd (大三度)", options: ["Major 3rd (大三度)", "Minor 3rd", "Augmented 3rd", "Perfect 4th"] },
+  { text: "The musical interval from C to C' (one octave higher) is a <span>______</span>.", answer: "Perfect 8ve (完全八度)", options: ["Major 8ve", "Perfect 8ve (完全八度)", "Minor 8ve", "Pure Octave"] },
+  { text: "If you widen a Perfect 5th interval by a half step (半音), it becomes a/an <span>______</span> fifth.", answer: "Augmented (增)", options: ["Major", "Minor", "Augmented (增)", "Diminished"] },
+
+  // ── 類別四：樂句終止式分析 (Cadences) ──
+  { text: "A Perfect Cadence (正格終止) moves from chord <span>______</span> to chord I.", answer: "V", options: ["IV", "V", "vi", "ii"] },
+  { text: "A Plagal Cadence (變格終止 / 阿門終止) moves from chord <span>______</span> to chord I.", answer: "IV", options: ["ii", "IV", "V", "vi"] },
+  { text: "An Interrupted Cadence (阻礙終止) typically surprises the listener by moving from V to <span>______</span>.", answer: "vi", options: ["I", "IV", "vi", "iii"] },
+  { text: "An Imperfect Cadence (半終止) is an unfinished musical phrase that always ends on chord <span>______</span>.", answer: "V", options: ["I", "ii", "IV", "V"] },
+  { text: "The chord built on the first degree of any scale is called the <span>______</span> chord.", answer: "Tonic (主和弦)", options: ["Tonic (主和弦)", "Dominant (屬和弦)", "Subdominant", "Median"] }
+];
+
+function shuffleArray(array) {
+  for (let i = array.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [array[i], array[j]] = [array[j], array[i]];
+  }
+  return array;
+}
+
+// 盲抽 10 題
+const activeQuestions = shuffleArray([...questionPool]).slice(0, 10);
+
+let currentIndex = 0;
+let correctCount = 0;
+
+function loadQuestion() {
+  const q = activeQuestions[currentIndex];
+  
+  document.getElementById('questionNum').innerText = `任務第 ${currentIndex + 1} / 10 題`;
+  document.getElementById('progressBar').style.width = `${(currentIndex + 1) * 10}%`;
+  document.getElementById('questionText').innerHTML = q.text;
+  
+  const shuffledOptions = shuffleArray([...q.options]);
+  
+  const buttons = document.querySelectorAll('.option-btn');
+  buttons.forEach((btn, idx) => {
+    btn.innerText = shuffledOptions[idx];
+  });
+}
+
+window.submitAnswer = function(btn) {
+  const selected = btn.innerText;
+  const correct = activeQuestions[currentIndex].answer;
+  
+  if (selected === correct) {
+    correctCount++;
+    document.getElementById('scoreTracker').innerText = `得分: ${correctCount * 10}`;
+  }
+  
+  currentIndex++;
+  
+  if (currentIndex < activeQuestions.length) {
+    loadQuestion();
+  } else {
+    clearInterval(timerInterval); 
+    showResults(false);
+  }
+}
+
+async function showResults(isTimeout = false) {
+  document.getElementById('quizBody').style.display = 'none';
+  document.getElementById('resultBody').style.display = 'block';
+  
+  const finalScore = correctCount * 10;
+  document.getElementById('finalScore').innerText = finalScore;
+  
+  if (isTimeout) {
+    document.getElementById('resultEmoji').innerText = '⏰';
+    document.getElementById('resultComment').innerText = "時間終了！中三級的終極考卷非常硬核，妳的成績已送達雲端資料庫！";
+  } else {
+    if (finalScore >= 80) {
+      document.getElementById('resultEmoji').innerText = '🎓';
+      document.getElementById('resultComment').innerText = "登峰造極！中三級和弦綜合大考完全難不倒妳，妳是真正的樂理大師！🎵";
+    } else if (finalScore >= 60) {
+      document.getElementById('resultEmoji').innerText = '🦅';
+      document.getElementById('resultComment').innerText = "精彩的表現！成功跨越轉位與終止式的重重考驗，及格過關！";
+    } else {
+      document.getElementById('resultEmoji').innerText = '⚔️';
+      document.getElementById('resultComment').innerText = "和弦分析確實是個大魔王，別氣餒，重整旗鼓多挑戰幾次！";
+    }
+  }
+
+  if (currentUid) {
+    try {
+      await addDoc(collection(db, "scores"), {
+        uid: currentUid,
+        quizName: "中三級：和弦與綜合分析",
+        score: finalScore,
+        correctAnswers: correctCount,
+        totalQuestions: 10,
+        timestamp: serverTimestamp()
+      });
+      console.log("中三級最終大考成績上傳完成。");
+    } catch (e) {
+      console.error("Firebase 上傳失敗: ", e);
+    }
+  }
+}
+
+window.goBackDashboard = function() {
+  window.location.href = "quiz.html";
+}
+
+loadQuestion();
+</script>
+
+</body>
+</html>
