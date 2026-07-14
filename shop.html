@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Miss Ho's Music Lab - 魔法道具商店 🛍️</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800;900&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --cream:   #FFFBF2;
+  --yellow:  #FFD94A;
+  --coral:   #FF7B6B;
+  --mint:    #4ECDC4;
+  --purple:  #A78BFA;
+  --blue:    #60A5FA;
+  --dark:    #2D2640;
+  --ink:     #3D3560;
+  --muted:   #8B85A8;
+  --bg-card: #FFFFFF;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+::-webkit-scrollbar { width: 10px; }
+::-webkit-scrollbar-track { background: var(--cream); border-left: 2px solid var(--dark); }
+::-webkit-scrollbar-thumb { background: var(--dark); border-radius: 4px; }
+
+body {
+  background: var(--cream);
+  font-family: 'Poppins', 'Noto Sans TC', sans-serif;
+  color: var(--ink);
+  min-height: 100vh;
+  display: flex;
+}
+
+/* ── SIDE DOCK (側邊導航欄) ── */
+.side-dock {
+  width: 290px;
+  background: var(--bg-card);
+  border-right: 3.5px solid var(--dark);
+  display: flex;
+  flex-direction: column;
+  padding: 40px 24px;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  z-index: 10;
+}
+.dock-brand {
+  font-family: 'Poppins', sans-serif;
+  font-weight: 900;
+  font-size: 22px;
+  color: var(--dark);
+  margin-bottom: 40px;
+  padding-bottom: 20px;
+  border-bottom: 3.5px dashed rgba(45,38,64,0.18);
+  letter-spacing: -0.5px;
+}
+.dock-brand em { font-style: normal; color: var(--coral); }
+.dock-menu { display: flex; flex-direction: column; gap: 14px; flex: 1; }
+.dock-item {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 16px 20px;
+  border: 2.5px solid var(--dark);
+  border-radius: 16px;
+  font-weight: 700;
+  font-size: 15px;
+  color: var(--dark);
+  text-decoration: none;
+  background: var(--bg-card);
+  box-shadow: 3.5px 3.5px 0 var(--dark);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.dock-item:hover { transform: translate(-2px, -2px); box-shadow: 5.5px 5.5px 0 var(--dark); background: #FFFDF9; }
+.dock-item.active { background: var(--purple); color: white; transform: translate(-3px, -3px); box-shadow: 6.5px 6.5px 0 var(--dark); }
+.dock-item:active { transform: translate(1px, 1px); box-shadow: 1.5px 1.5px 0 var(--dark); }
+
+/* ── MAIN CONTENT (右側商店主區) ── */
+.main-content {
+  flex: 1;
+  padding: 50px 50px 80px;
+  max-width: 1200px;
+  overflow-y: auto;
+}
+
+.shop-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 36px;
+}
+.shop-title h1 { font-weight: 900; font-size: 36px; color: var(--dark); letter-spacing: -0.5px; margin-bottom: 8px; }
+.shop-title p { color: var(--muted); font-weight: 600; font-size: 15px; }
+
+/* 🪙 金幣餘額大卡片 */
+.wallet-card {
+  background: var(--yellow);
+  border: 3px solid var(--dark);
+  border-radius: 20px;
+  padding: 14px 28px;
+  box-shadow: 4.5px 4.5px 0 var(--dark);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-weight: 900;
+  font-size: 22px;
+}
+
+/* 🛍️ 商品網格結構 */
+.shop-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 24px;
+  margin-bottom: 48px;
+}
+.product-card {
+  background: var(--bg-card);
+  border: 2.5px solid var(--dark);
+  border-radius: 20px;
+  padding: 24px;
+  box-shadow: 4.5px 4.5px 0 var(--dark);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  position: relative;
+  transition: all 0.2s ease;
+}
+.product-card:hover { transform: translate(-2px, -2px); box-shadow: 6.5px 6.5px 0 var(--dark); }
+
+.item-badge {
+  align-self: flex-start;
+  padding: 4px 12px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 800;
+  border: 2px solid var(--dark);
+  text-transform: uppercase;
+}
+.item-badge.attack { background: var(--coral); color: white; }
+.item-badge.defense { background: var(--mint); }
+.item-badge.prank { background: var(--blue); color: white; }
+
+.product-card h3 { font-size: 20px; font-weight: 800; color: var(--dark); }
+.product-card p { font-size: 13.5px; color: var(--muted); font-weight: 500; line-height: 1.6; flex: 1; }
+
+.price-tag {
+  font-size: 18px;
+  font-weight: 900;
+  color: var(--dark);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.buy-btn {
+  padding: 12px;
+  border: 2px solid var(--dark);
+  border-radius: 14px;
+  background: var(--yellow);
+  font-weight: 800;
+  text-align: center;
+  cursor: pointer;
+  box-shadow: 2.5px 2.5px 0 var(--dark);
+  transition: all 0.15s ease;
+}
+.buy-btn:hover { background: #FADA3E; transform: translate(-1px, -1px); box-shadow: 3.5px 3.5px 0 var(--dark); }
+.buy-btn:active { transform: translate(1px, 1px); box-shadow: 1px 1px 0 var(--dark); }
+
+/* 🎒 魔法背包渲染區 */
+.inventory-section {
+  background: white;
+  border: 3px solid var(--dark);
+  border-radius: 20px;
+  padding: 28px;
+  box-shadow: 5px 5px 0 var(--dark);
+}
+.inventory-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  margin-top: 16px;
+}
+.inventory-item {
+  background: #F8F6F0;
+  border: 2px solid var(--dark);
+  padding: 10px 18px;
+  border-radius: 14px;
+  font-weight: 700;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  box-shadow: 2px 2px 0 var(--dark);
+}
+
+@media (max-width: 950px) {
+  body { flex-direction: column; }
+  .side-dock { width: 100%; height: auto; border-right: none; border-bottom: 3.5px solid var(--dark); padding: 24px; }
+  .main-content { padding: 30px 24px; }
+  .shop-header { flex-direction: column; align-items: flex-start; gap: 20px; }
+  .wallet-card { align-self: flex-start; }
+}
+</style>
+</head>
+<body>
+
+  <!-- ── 側邊控制台 SIDE DOCK ── -->
+  <div class="side-dock">
+    <div class="dock-brand">Miss <em>Ho's</em> Lab 🎵</div>
+    <div class="dock-menu">
+      <a href="https://missho-music.github.io/music/quiz.html" class="dock-item">📊 我的儀表板</a>
+      <div class="dock-item active">🛍️ 魔法道具商店</div>
+      <a href="https://missho-music.github.io/music/index.html" class="dock-item">🏠 返回首頁</a>
+    </div>
+  </div>
+
+  <!-- ── 右側商店主區 MAIN CONTENT ── -->
+  <div class="main-content">
+    
+    <div class="shop-header">
+      <div class="shop-title">
+        <h1>音樂魔法商店</h1>
+        <p>消耗累積的音樂金幣，購買強力咒語，開啟同儕競技樂趣！</p>
+      </div>
+      <!-- 錢包卡片 -->
+      <div class="wallet-card">
+        <span>🪙</span>
+        <span id="currentGoldDisplay">0</span>
+      </div>
+    </div>
+
+    <!-- 商品陳列架 -->
+    <div class="shop-grid">
+      
+      <!-- 道具 1：攻擊 -->
+      <div class="product-card">
+        <span class="item-badge attack">💥 攻擊型</span>
+        <h3>低音轟炸 (Bass Blast)</h3>
+        <p>使用重低音音波震盪！施法後能扣除指定同班同學 50 點經驗值（對方無護盾時生效）。</p>
+        <div class="price-tag">🪙 100 金幣</div>
+        <button class="buy-btn" onclick="handlePurchase('bass_blast', 100)">立即購買</button>
+      </div>
+
+      <!-- 道具 2：防守 -->
+      <div class="product-card">
+        <span class="item-badge defense">🛡️ 防守型</span>
+        <h3>全音符護盾 (Shield)</h3>
+        <p>樂理界的無敵金鐘罩！自動在背景抵擋下一次來自任何同學的惡意音波突襲。</p>
+        <div class="price-tag">🪙 150 金幣</div>
+        <button class="buy-btn" onclick="handlePurchase('semi_shield', 150)">立即購買</button>
+      </div>
+
+      <!-- 道具 3：惡作劇 -->
+      <div class="product-card">
+        <span class="item-badge prank">✨ 惡作劇</span>
+        <h3>休止符封印 (Rest Curse)</h3>
+        <p>讓對方的世界陷入靜音！施法後可以讓該同學的控制台背景音樂被「強迫休止」封印。</p>
+        <div class="price-tag">🪙 80 金幣</div>
+        <button class="buy-btn" onclick="handlePurchase('rest_curse', 80)">立即購買</button>
+      </div>
+
+    </div>
+
+    <!-- 🎒 魔法背包區塊 -->
+    <div class="inventory-section">
+      <h2 class="section-title">🎒 我的魔法背包 (Owned Items)</h2>
+      <div class="inventory-container" id="inventoryWrapper">
+        <div style="color: var(--muted); font-weight: 600;">正在清點背包物資中...</div>
+      </div>
+    </div>
+
+  </div>
+
+<!-- Firebase 核心整合模組 -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+import { getFirestore, doc, getDoc, updateDoc, increment, arrayUnion } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDMIul1XcWHOk45JWXh-xcD8nASQW08hNc",
+  authDomain: "music-missho.firebaseapp.com",
+  projectId: "music-missho",
+  storageBucket: "music-missho.firebasestorage.app",
+  messagingSenderId: "542029036241",
+  appId: "1:542029036241:web:2275f6e6c7c9685fb763f0",
+  measurementId: "G-J3CGDLSGZF"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+let currentUid = null;
+let currentGold = 0;
+
+// 🔒 檢查玩家登入狀態並加載錢包
+onAuthStateChanged(auth, (user) => {
+  if (user) {
+    currentUid = user.uid;
+    syncUserWalletAndInventory();
+  } else {
+    alert("請先登入帳號才能進入魔法商店！");
+    window.location.href = "https://missho-music.github.io/music/login.html";
+  }
+});
+
+// 🔄 同步讀取使用者的金幣與背包狀態
+async function syncUserWalletAndInventory() {
+  if (!currentUid) return;
+  try {
+    const userDoc = await getDoc(doc(db, 'users', currentUid));
+    if (userDoc.exists()) {
+      const data = userDoc.data();
+      currentGold = data.gold || 0;
+      
+      // 更新金幣數字
+      document.getElementById('currentGoldDisplay').innerText = currentGold;
+      
+      // 渲染背包物品
+      renderInventory(data.inventory || []);
+    }
+  } catch (err) {
+    console.error("同步資料庫失敗：", err);
+  }
+}
+
+// 🎒 背包內容圖像化渲染
+function renderInventory(items) {
+  const wrapper = document.getElementById('inventoryWrapper');
+  if (items.length === 0) {
+    wrapper.innerHTML = `<div style="color: var(--muted); font-weight: 600; font-size:14px;">目前背包空空如也，快去上方購買妳的第一個音樂咒語吧！🛒</div>`;
+    return;
+  }
+
+  // 轉換道具對應中文稱呼
+  const nameMap = {
+    'bass_blast': '💥 低音轟炸',
+    'semi_shield': '🛡️ 全音符護盾',
+    'rest_curse': '✨ 休止符封印'
+  };
+
+  // 統計每種道具持有的數量
+  const counts = {};
+  items.forEach(x => counts[x] = (counts[x] || 0) + 1);
+
+  wrapper.innerHTML = "";
+  Object.keys(counts).forEach(itemId => {
+    const chip = document.createElement('div');
+    chip.className = 'inventory-item';
+    chip.innerHTML = `<span>${nameMap[itemId] || itemId}</span> <b style="color:var(--coral)">x${counts[itemId]}</b>`;
+    wrapper.appendChild(chip);
+  });
+}
+
+// 🛍️ 處理購買扣款與塞入背包邏輯 (發佈到 window 全域供 onClick 呼叫)
+window.handlePurchase = async function(itemId, price) {
+  if (!currentUid) return;
+  
+  // 1. 防禦機制：金幣餘額不足
+  if (currentGold < price) {
+    alert(`購買失敗！妳當前只有 🪙 ${currentGold} 金幣，還差 ${price - currentGold} 金幣才能購買此道具。快去刷題大賽賺錢吧！💪`);
+    return;
+  }
+
+  if (confirm(`確定要消耗 🪙 ${price} 金幣購買這個道具嗎？`)) {
+    try {
+      const userRef = doc(db, 'users', currentUid);
+      
+      // 2. ⚡ 雲端原子操作：扣錢＋推入陣列一次搞定
+      await updateDoc(userRef, {
+        gold: increment(-price),
+        inventory: arrayUnion(itemId)
+      });
+
+      alert("🎉 購買成功！道具已妥善放入妳的魔法背包中。");
+      
+      // 3. 重新同步 UI
+      await syncUserWalletAndInventory();
+    } catch (e) {
+      alert("交易失敗，雲端資料庫繁忙，請稍後再試。");
+      console.error(e);
+    }
+  }
+};
+</script>
+</body>
+</html>
