@@ -136,6 +136,7 @@ body {
   gap: 15px;
   margin-bottom: 20px;
   align-items: center;
+  flex-wrap: wrap;
 }
 select.filter-select {
   padding: 12px 16px;
@@ -251,16 +252,29 @@ tr:hover td { background: rgba(0,0,0,0.02); }
       </div>
     </div>
 
-    <!-- 📋 學生列表 -->
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+    <!-- 📋 學生列表與三重篩選 -->
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 15px;">
       <div class="section-title">🧑‍🎓 學生學習狀況總表</div>
+      
       <div class="controls-bar">
+        <!-- 1. 年級篩選 -->
         <select class="filter-select" id="gradeFilter" onchange="filterTable()">
           <option value="all">所有年級 (All)</option>
           <option value="F1">中一 (F1)</option>
           <option value="F2">中二 (F2)</option>
           <option value="F3">中三 (F3)</option>
         </select>
+        
+        <!-- 2. 班別篩選 -->
+        <select class="filter-select" id="classFilter" onchange="filterTable()">
+          <option value="all">所有班別</option>
+          <option value="A">A 班</option>
+          <option value="B">B 班</option>
+          <option value="C">C 班</option>
+          <option value="D">D 班</option>
+        </select>
+
+        <!-- 3. 狀態篩選 -->
         <select class="filter-select" id="statusFilter" onchange="filterTable()">
           <option value="all">所有狀態</option>
           <option value="danger">🚨 需要幫忙 (低於60分)</option>
@@ -316,7 +330,6 @@ let allStudentsData = [];
 
 onAuthStateChanged(auth, (user) => {
   if (user) {
-    // 實務上這裡可以檢查 user.uid 是否屬於老師名單
     loadAllData();
   } else {
     alert("請先登入老師帳號！");
@@ -330,8 +343,11 @@ async function loadAllData() {
     const usersSnap = await getDocs(collection(db, "users"));
     let usersDict = {};
     usersSnap.forEach(doc => {
-      // 排除可能的系統測試帳號或老師自己，如果有特別 role 欄位可以加在這
-      usersDict[doc.id] = { uid: doc.id, ...doc.data(), totalScore: 0, quizCount: 0 };
+      const data = doc.data();
+      // 僅處理學生身分
+      if (data.role !== 'teacher') {
+        usersDict[doc.id] = { uid: doc.id, ...data, totalScore: 0, quizCount: 0 };
+      }
     });
 
     // 2. 抓取所有測驗成績 (scores 集合)
@@ -380,7 +396,11 @@ async function loadAllData() {
     }
 
     // 依班級排序為預設
-    allStudentsData.sort((a, b) => (a.grade + a.class).localeCompare(b.grade + b.class));
+    allStudentsData.sort((a, b) => {
+      const classA = (a.grade || '') + (a.class || '');
+      const classB = (b.grade || '') + (b.class || '');
+      return classA.localeCompare(classB);
+    });
 
     // 4. 更新頂部統計數據
     document.getElementById('totalStudents').innerText = `${totalStudentsCount} 人`;
@@ -402,12 +422,12 @@ function renderTable(dataArray) {
   tbody.innerHTML = '';
 
   if (dataArray.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: var(--muted);">查無符合條件的學生資料。</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: var(--muted); padding: 30px;">查無符合條件的學生資料。</td></tr>`;
     return;
   }
 
   dataArray.forEach(student => {
-    // 遊戲等級計算公式 (沿用原學生版面)
+    // 遊戲等級計算公式
     const exp = student.exp || 0;
     const level = Math.floor(exp / 200) + 1;
 
@@ -420,7 +440,7 @@ function renderTable(dataArray) {
     const tr = document.createElement('tr');
     tr.innerHTML = `
       <td style="font-weight: 800; color: var(--purple);">${student.name || '未命名'}</td>
-      <td>${student.grade || '-'} / ${student.class || '-'}班</td>
+      <td>${student.grade || '-'} / ${student.class || '-'} 班</td>
       <td>Lv.${level} (${exp} EXP)</td>
       <td>${student.quizCount} 次</td>
       <td style="font-weight: 800;">${student.quizCount > 0 ? student.avgScore + ' 分' : '-'}</td>
@@ -430,19 +450,26 @@ function renderTable(dataArray) {
   });
 }
 
-// 篩選功能暴露給全域環境
+// 篩選功能暴露給全域環境 (包含年級、班別、狀態三重篩選)
 window.filterTable = function() {
   const gradeFilter = document.getElementById('gradeFilter').value;
+  const classFilter = document.getElementById('classFilter').value;
   const statusFilter = document.getElementById('statusFilter').value;
 
   const filteredData = allStudentsData.filter(student => {
+    // 1. 判斷年級
     let passGrade = gradeFilter === 'all' || student.grade === gradeFilter;
-    let passStatus = true;
     
+    // 2. 判斷班別
+    let passClass = classFilter === 'all' || student.class === classFilter;
+    
+    // 3. 判斷狀態
+    let passStatus = true;
     if (statusFilter === 'danger') passStatus = (student.status === 'danger');
     if (statusFilter === 'good') passStatus = (student.status === 'good');
     
-    return passGrade && passStatus;
+    // 三個條件皆符合才顯示
+    return passGrade && passClass && passStatus;
   });
 
   renderTable(filteredData);
