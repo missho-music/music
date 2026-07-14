@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Miss Ho's Music Lab - 樂理魔法競技場 ⚔️</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800;900&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --cream:   #FFFBF2;
+  --yellow:  #FFD94A;
+  --coral:   #FF7B6B;
+  --mint:    #4ECDC4;
+  --purple:  #A78BFA;
+  --blue:    #60A5FA;
+  --dark:    #2D2640;
+  --ink:     #3D3560;
+  --muted:   #8B85A8;
+  --bg-card: #FFFFFF;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+::-webkit-scrollbar { width: 10px; }
+::-webkit-scrollbar-track { background: var(--cream); border-left: 2px solid var(--dark); }
+::-webkit-scrollbar-thumb { background: var(--dark); border-radius: 4px; }
+
+body {
+  background: var(--cream);
+  font-family: 'Poppins', 'Noto Sans TC', sans-serif;
+  color: var(--ink);
+  min-height: 100vh;
+  display: flex;
+}
+
+/* ── SIDE DOCK (側邊導航欄) ── */
+.side-dock {
+  width: 290px;
+  background: var(--bg-card);
+  border-right: 3.5px solid var(--dark);
+  display: flex;
+  flex-direction: column;
+  padding: 40px 24px;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  z-index: 10;
+}
+.dock-brand {
+  font-family: 'Poppins', sans-serif;
+  font-weight: 900;
+  font-size: 22px;
+  color: var(--dark);
+  margin-bottom: 40px;
+  padding-bottom: 20px;
+  border-bottom: 3.5px dashed rgba(45,38,64,0.18);
+  letter-spacing: -0.5px;
+}
+.dock-brand em { font-style: normal; color: var(--coral); }
+.dock-menu { display: flex; flex-direction: column; gap: 14px; flex: 1; }
+.dock-item {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 16px 20px;
+  border: 2.5px solid var(--dark);
+  border-radius: 16px;
+  font-weight: 700;
+  font-size: 15px;
+  color: var(--dark);
+  text-decoration: none;
+  background: var(--bg-card);
+  box-shadow: 3.5px 3.5px 0 var(--dark);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.dock-item:hover { transform: translate(-2px, -2px); box-shadow: 5.5px 5.5px 0 var(--dark); background: #FFFDF9; }
+.dock-item.active { background: var(--coral); color: white; transform: translate(-3px, -3px); box-shadow: 6.5px 6.5px 0 var(--dark); }
+
+/* ── MAIN CONTENT (右側主畫面) ── */
+.main-content {
+  flex: 1;
+  padding: 50px 50px 80px;
+  max-width: 1200px;
+  overflow-y: auto;
+}
+
+.arena-header {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 28px;
+  margin-bottom: 32px;
+}
+.arena-title h1 { font-weight: 900; font-size: 36px; color: var(--dark); letter-spacing: -0.5px; margin-bottom: 8px; }
+.arena-title p { color: var(--muted); font-weight: 600; font-size: 15px; }
+
+.my-spells-card {
+  background: white;
+  border: 3px solid var(--dark);
+  border-radius: 20px;
+  padding: 20px;
+  box-shadow: 4.5px 4.5px 0 var(--dark);
+}
+.spells-title { font-size: 13px; font-weight: 800; color: var(--muted); text-transform: uppercase; margin-bottom: 10px; }
+.spells-inventory { display: flex; gap: 8px; flex-wrap: wrap; }
+.spell-badge {
+  background: #F8F6F0;
+  border: 2px solid var(--dark);
+  padding: 6px 12px;
+  border-radius: 12px;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+/* 📍 頂部班級看板 */
+.class-ribbon {
+  background: var(--purple);
+  color: white;
+  padding: 16px 24px;
+  font-weight: 800;
+  font-size: 18px;
+  border: 3px solid var(--dark);
+  border-radius: 18px;
+  margin-bottom: 32px;
+  box-shadow: 4px 4px 0 var(--dark);
+}
+
+/* 🏆 前三名頒獎台視覺區 (Podium Grid) */
+.podium-section {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+  margin-bottom: 40px;
+}
+.podium-card {
+  border: 3.5px solid var(--dark);
+  border-radius: 24px;
+  padding: 32px 20px;
+  text-align: center;
+  position: relative;
+  box-shadow: 6px 6px 0 var(--dark);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+.podium-card.rank-1 { background: linear-gradient(135deg, #FFFDF0 0%, #FFF5CC 100%); border-color: var(--dark); order: 2; transform: scale(1.05); }
+.podium-card.rank-2 { background: #F3F4F6; order: 1; }
+.podium-card.rank-3 { background: #FFF7ED; order: 3; }
+
+.crown-tag { font-size: 36px; position: absolute; top: -24px; }
+
+/* 🧙‍♂️ 魔法頭像幾何結構 */
+.avatar-circle {
+  width: 68px; height: 68px;
+  border-radius: 50%;
+  border: 3px solid var(--dark);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 28px;
+  box-shadow: 3px 3px 0 var(--dark);
+  position: relative;
+}
+
+/* 🔮 學生卡牌戰場網格 (Battle Cards Grid) */
+.battle-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 24px;
+}
+
+.player-card {
+  background: var(--bg-card);
+  border: 3px solid var(--dark);
+  border-radius: 22px;
+  padding: 24px;
+  box-shadow: 4.5px 4.5px 0 var(--dark);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  position: relative;
+  transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.player-card:hover {
+  transform: translate(-3px, -3px);
+  box-shadow: 7.5px 7.5px 0 var(--dark);
+}
+
+/* 🎯 特殊狀態卡牌特效樣式 */
+.player-card.is-me {
+  background: #FFFDF2;
+  border-style: double;
+  border-width: 5px;
+}
+.player-card.is-me::before {
+  content: 'YOU';
+  position: absolute;
+  top: 12px; right: 12px;
+  font-size: 10px; font-weight: 900;
+  background: var(--dark); color: white;
+  padding: 2px 6px; border-radius: 6px;
+}
+
+/* 🛡️ 護盾包覆光芒 */
+.player-card.shielded {
+  border-color: var(--mint);
+  box-shadow: 4.5px 4.5px 0 var(--mint), 0 0 15px rgba(78, 205, 196, 0.3);
+}
+/* 🔇 凍結休止符狀態 */
+.player-card.cursed {
+  background: #EDF7F9 !important;
+  border-style: dashed;
+  opacity: 0.85;
+}
+.player-card.cursed::after {
+  content: '𝄾 Frozzen';
+  position: absolute;
+  bottom: 8px; right: 12px;
+  font-size: 11px; font-weight: 800; color: var(--blue);
+}
+
+.player-meta { display: flex; align-items: center; gap: 14px; }
+.player-name { font-size: 18px; font-weight: 900; color: var(--dark); }
+.player-exp { font-size: 13px; font-weight: 700; color: var(--muted); }
+
+.rank-badge-card {
+  position: absolute;
+  top: 12px; left: 12px;
+  background: var(--dark);
+  color: white;
+  font-size: 11px; font-weight: 800;
+  padding: 2px 8px; border-radius: 999px;
+}
+
+.card-status-row { display: flex; gap: 6px; flex-wrap: wrap; }
+.mini-badge {
+  padding: 3px 8px; border: 1.5px solid var(--dark);
+  border-radius: 8px; font-size: 11px; font-weight: 800;
+}
+
+/* ⚔️ 施法按鈕控制區 */
+.spell-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: auto;
+}
+.cast-btn-card {
+  width: 100%;
+  padding: 10px;
+  border: 2px solid var(--dark);
+  border-radius: 12px;
+  font-weight: 800;
+  font-size: 13px;
+  cursor: pointer;
+  box-shadow: 2px 2px 0 var(--dark);
+  transition: all 0.1s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+.cast-btn-card.attack { background: var(--coral); color: white; }
+.cast-btn-card.prank { background: var(--blue); color: white; }
+.cast-btn-card:hover:not(:disabled) { transform: translate(-1px, -1px); box-shadow: 3px 3px 0 var(--dark); }
+.cast-btn-card:disabled { background: #F3F4F6; color: #BDC3C7; border-color: #D2D7D9; box-shadow: none; cursor: not-allowed; transform: none; }
+
+@media (max-width: 850px) {
+  body { flex-direction: column; }
+  .side-dock { width: 100%; height: auto; border-right: none; border-bottom: 3.5px solid var(--dark); padding: 24px; }
+  .main-content { padding: 30px 20px; }
+  .arena-header { grid-template-columns: 1fr; }
+  .podium-section { grid-template-columns: 1fr; }
+  .podium-card.rank-1 { order: 1; transform: none; }
+  .podium-card.rank-2 { order: 2; }
+  .podium-card.rank-3 { order: 3; }
+}
+</style>
+</head>
+<body>
+
+  <!-- ── 側邊控制台 SIDE DOCK ── -->
+  <div class="side-dock">
+    <div class="dock-brand">Miss <em>Ho's</em> Lab 🎵</div>
+    <div class="dock-menu">
+      <a href="https://missho-music.github.io/music/quiz.html" class="dock-item">📊 我的儀表板</a>
+      <a href="https://missho-music.github.io/music/shop.html" class="dock-item">🛍️ 魔法道具商店</a>
+      <div class="dock-item active">⚔️ 班級競技場</div>
+      <a href="https://missho-music.github.io/music/index.html" class="dock-item">🏠 返回首頁</a>
+    </div>
+  </div>
+
+  <!-- ── 右側競技場主區 MAIN CONTENT ── -->
+  <div class="main-content">
+    
+    <div class="arena-header">
+      <div class="arena-title">
+        <h1>樂理魔法競技場</h1>
+        <p>全班樂理天梯戰場！點擊下方魔法卡牌，對同學發射音波突襲吧！</p>
+      </div>
+      <!-- 背包狀態 -->
+      <div class="my-spells-card">
+        <div class="spells-title">🎒 我的現有咒語庫</div>
+        <div class="spells-inventory" id="mySpellsWrapper">
+          <span style="color:var(--muted); font-size:12px;">正在清點法術...</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 📍 班級名稱條 -->
+    <div class="class-ribbon" id="classDisplayTitle">
+      正在召喚專屬班級防線...
+    </div>
+
+    <!-- 🏆 三冠王頒獎台渲染區 -->
+    <h2 class="section-title" id="podiumHeader" style="display:none; margin-bottom:32px;">👑 樂理三首領王座</h2>
+    <div class="podium-section" id="podiumWrapper"></div>
+
+    <!-- 🔮 班級其餘法師戰場網格 -->
+    <h2 class="section-title" style="margin-bottom:20px;">🔮 學院全體法師戰隊</h2>
+    <div class="battle-grid" id="arenaGridWrapper">
+      <div style="color: var(--muted); padding: 20px; font-weight:600;">正在召喚全體法師陣列...</div>
+    </div>
+
+  </div>
+
+<!-- Firebase 核心整合模組 -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+import { getFirestore, doc, getDoc, collection, query, where, getDocs, runTransaction } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDMIul1XcWHOk45JWXh-xcD8nASQW08hNc",
+  authDomain: "music-missho.firebaseapp.com",
+  projectId: "music-missho",
+  storageBucket: "music-missho.firebasestorage.app",
+  messagingSenderId: "542029036241",
+  appId: "1:542029036241:web:2275f6e6c7c9685fb763f0",
+  measurementId: "G-J3CGDLSGZF"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+let currentUid = null;
+let myInfo = null;
+
+// 音樂徽章動態庫
+const musicAvatars = ["🎼", "🎵", "🎶", "🎹", "🎻", "🎸", "🎺", "🥁", "🔮", "✨"];
+
+onAuthStateChanged(auth, (user) => {
+  if (user) {
+    currentUid = user.uid;
+    loadArenaData();
+  } else {
+    alert("必須要登入後才能進入班級競技場！");
+    window.location.href = "https://missho-music.github.io/music/login.html";
+  }
+});
+
+async function loadArenaData() {
+  if (!currentUid) return;
+  try {
+    const myDoc = await getDoc(doc(db, 'users', currentUid));
+    if (!myDoc.exists()) return;
+    myInfo = { id: myDoc.id, ...myDoc.data() };
+    
+    renderMySpells(myInfo.inventory || []);
+
+    const myGrade = myInfo.grade || 'N/A';
+    const myClass = myInfo.class || 'N/A';
+    document.getElementById('classDisplayTitle').innerText = `📍 妳正在查看：${myGrade} 年級 ${myClass} 班 · 樂理天梯戰場`;
+
+    const q = query(collection(db, 'users'), where('grade', '==', myGrade), where('class', '==', myClass));
+    const snapshot = await getDocs(q);
+    
+    let classmates = [];
+    snapshot.forEach(docSnap => {
+      classmates.push({ id: docSnap.id, ...docSnap.data() });
+    });
+
+    // 前端超快速演算法進行排行（100%防止雲端複合索引噴出紅色錯誤）
+    classmates.sort((a, b) => (b.exp || 0) - (a.exp || 0));
+
+    // 分流並畫出動態網格
+    distributeAndRender(classmates);
+
+  } catch (err) {
+    console.error("競技場加載失敗：", err);
+  }
+}
+
+function renderMySpells(inventory) {
+  const wrapper = document.getElementById('mySpellsWrapper');
+  const counts = { 'bass_blast': 0, 'semi_shield': 0, 'rest_curse': 0 };
+  inventory.forEach(x => { if (counts[x] !== undefined) counts[x]++; });
+  wrapper.innerHTML = `
+    <div class="spell-badge" style="background:var(--cream); border-color:var(--coral);">💥 轟炸 x${counts['bass_blast']}</div>
+    <div class="spell-badge" style="background:var(--cream); border-color:var(--mint);">🛡️ 護盾 x${counts['semi_shield']}</div>
+    <div class="spell-badge" style="background:var(--cream); border-color:var(--blue);">🔇 封印 x${counts['rest_curse']}</div>
+  `;
+}
+
+// 🎰 智慧發放頭像與背景邊框色
+function getAvatarStyles(exp) {
+  const level = Math.floor(exp / 200) + 1;
+  let bgCircle = "var(--yellow)";
+  if (level >= 5) bgCircle = "var(--purple)";
+  else if (level >= 3) bgCircle = "var(--coral)";
+  else if (level >= 2) bgCircle = "var(--blue)";
+  
+  // 隨機從音樂徽章庫中抽取一個圖案
+  const charIdx = exp % musicAvatars.length;
+  return { level, bgCircle, icon: musicAvatars[charIdx] };
+}
+
+// ⚔️ 分流渲染前三名頒獎台與後方網格
+function distributeAndRender(list) {
+  const podiumWrapper = document.getElementById('podiumWrapper');
+  const gridWrapper = document.getElementById('arenaGridWrapper');
+  
+  podiumWrapper.innerHTML = "";
+  gridWrapper.innerHTML = "";
+
+  const hasAttack = (myInfo.inventory || []).includes('bass_blast');
+  const hasPrank = (myInfo.inventory || []).includes('rest_curse');
+
+  // 打造前三名頒獎台 (Podium)
+  if (list.length > 0) {
+    document.getElementById('podiumHeader').style.display = 'block';
+    const top3 = list.slice(0, 3);
+    
+    top3.forEach((student, idx) => {
+      const rank = idx + 1;
+      const isMe = student.id === currentUid;
+      const { level, bgCircle, icon } = getAvatarStyles(student.exp || 0);
+      const isShielded = (student.inventory || []).includes('semi_shield');
+      const isCursed = student.isCursed || false;
+
+      const crowns = { 1: "👑", 2: "🥈", 3: "🥉" };
+      
+      const card = document.createElement('div');
+      card.className = `podium-card rank-${rank} ${isMe ? 'is-me' : ''} ${isShielded ? 'shielded' : ''} ${isCursed ? 'cursed' : ''}`;
+      
+      card.innerHTML = `
+        <div class="crown-tag">${crowns[rank]}</div>
+        <div class="avatar-circle" style="background:${bgCircle}">${icon}</div>
+        <div class="player-name" style="font-size:20px;">${student.name}</div>
+        <div class="player-exp">Lv.${level} · ${student.exp || 0} EXP</div>
+        <div class="card-status-row">
+          ${isShielded ? '<span class="mini-badge" style="background:var(--mint);">🛡️ 護盾</span>' : ''}
+          ${isCursed ? '<span class="mini-badge" style="background:var(--blue); color:white;">🔇 封印中</span>' : ''}
+        </div>
+        <div class="spell-actions" style="width:100%; margin-top:8px;">
+          <button class="cast-btn-card attack" onclick="executeMagic('${student.id}', '${student.name}', 'bass_blast')" ${(!hasAttack || isMe) ? 'disabled' : ''}>💥 轟炸</button>
+          <button class="cast-btn-card prank" onclick="executeMagic('${student.id}', '${student.name}', 'rest_curse')" ${(!hasPrank || isMe) ? 'disabled' : ''}>延遲</button>
+        </div>
+      `;
+      podiumWrapper.appendChild(card);
+    });
+  }
+
+  // 打造全體同學大網格卡牌區
+  list.forEach((student, index) => {
+    const isMe = student.id === currentUid;
+    const { level, bgCircle, icon } = getAvatarStyles(student.exp || 0);
+    const isShielded = (student.inventory || []).includes('semi_shield');
+    const isCursed = student.isCursed || false;
+
+    const card = document.createElement('div');
+    card.className = `player-card ${isMe ? 'is-me' : ''} ${isShielded ? 'shielded' : ''} ${isCursed ? 'cursed' : ''}`;
+    
+    card.innerHTML = `
+      <div class="rank-badge-card">RANK ${index + 1}</div>
+      <div class="player-meta" style="margin-top:10px;">
+        <div class="avatar-circle" style="background:${bgCircle}; width:52px; height:52px; font-size:22px;">${icon}</div>
+        <div>
+          <div class="player-name">${student.name}</div>
+          <div class="player-exp">Lv.${level} · ${student.exp || 0} EXP</div>
+        </div>
+      </div>
+      <div class="card-status-row">
+        ${isShielded ? '<span class="mini-badge" style="background:var(--mint);">🛡️ 護盾啟動</span>' : ''}
+        ${isCursed ? '<span class="mini-badge" style="background:var(--blue); color:white;">🔇 休止符結冰</span>' : ''}
+      </div>
+      <div class="spell-actions">
+        <button class="cast-btn-card attack" onclick="executeMagic('${student.id}', '${student.name}', 'bass_blast')" ${(!hasAttack || isMe) ? 'disabled' : ''}>
+          💥 低音轟炸 (-50 EXP)
+        </button>
+        <button class="cast-btn-card prank" onclick="executeMagic('${student.id}', '${student.name}', 'rest_curse')" ${(!hasPrank || isMe) ? 'disabled' : ''}>
+          靜音封印
+        </button>
+      </div>
+    `;
+    gridWrapper.appendChild(card);
+  });
+}
+
+// ⚔️ 雲端事務安全發動施法邏輯
+window.executeMagic = async function(targetId, targetName, spellType) {
+  if (!currentUid || !myInfo) return;
+
+  const typeName = spellType === 'bass_blast' ? '【低音轟炸】' : '【休止符封印】';
+  if (!confirm(`確定要對 ${targetName} 同學施放 ${typeName} 咒語嗎？`)) return;
+
+  const attackerRef = doc(db, 'users', currentUid);
+  const targetRef = doc(db, 'users', targetId);
+
+  try {
+    const resultMessage = await runTransaction(db, async (transaction) => {
+      const attackerSnap = await transaction.get(attackerRef);
+      const targetSnap = await transaction.get(targetRef);
+
+      if (!attackerSnap.exists() || !targetSnap.exists()) throw "檔案撈取失敗";
+
+      const attackerData = attackerSnap.data();
+      const targetData = targetSnap.data();
+
+      let myInv = attackerData.inventory || [];
+      const itemIdx = myInv.indexOf(spellType);
+      if (itemIdx === -1) return "施法失敗！妳的背包裡沒有這個道具。";
+
+      myInv.splice(itemIdx, 1);
+      let enemyInv = targetData.inventory || [];
+      
+      if (enemyInv.includes('semi_shield')) {
+        const shieldIdx = enemyInv.indexOf('semi_shield');
+        enemyInv.splice(shieldIdx, 1);
+        transaction.update(attackerRef, { inventory: myInv });
+        transaction.update(targetRef, { inventory: enemyInv });
+        return `💥 施法被阻擋！${targetName} 同學開啟了【全音符護盾】，將妳的魔法完美彈開了！`;
+      } else {
+        let newEnemyExp = targetData.exp || 0;
+        if (spellType === 'bass_blast') {
+          newEnemyExp = Math.max(0, newEnemyExp - 50);
+          transaction.update(targetRef, { exp: newEnemyExp });
+        } else if (spellType === 'rest_curse') {
+          transaction.update(targetRef, { isCursed: true });
+        }
+        transaction.update(attackerRef, { inventory: myInv });
+        return `⚡ 施法大成功！妳對 ${targetName} 成功施展了 ${typeName}！對方的陣線徹底瓦解！`;
+      }
+    });
+
+    alert(resultMessage);
+    loadArenaData();
+
+  } catch (error) {
+    console.error("交易執行失敗：", error);
+    alert("法術亂流！請再試一次。");
+  }
+};
+</script>
+</body>
+</html>
