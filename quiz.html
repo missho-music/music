@@ -17,9 +17,15 @@
   --dark:    #2D2640;
   --ink:     #3D3560;
   --muted:   #8B85A8;
+  --bg-card: #FFFFFF;
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
+
+/* 客製化高質感微粗獷滾動條 */
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track { background: var(--cream); border-left: 2px solid var(--dark); }
+::-webkit-scrollbar-thumb { background: var(--dark); border-radius: 4px; }
 
 body {
   background: var(--cream);
@@ -29,14 +35,14 @@ body {
   display: flex;
 }
 
-/* ── SIDE DOCK (側邊導航欄) ── */
+/* ── SIDE DOCK (側邊導航欄升級版) ── */
 .side-dock {
-  width: 280px;
-  background: white;
+  width: 290px;
+  background: var(--bg-card);
   border-right: 3.5px solid var(--dark);
   display: flex;
   flex-direction: column;
-  padding: 30px 20px;
+  padding: 40px 24px;
   position: sticky;
   top: 0;
   height: 100vh;
@@ -46,228 +52,226 @@ body {
 .dock-brand {
   font-family: 'Poppins', sans-serif;
   font-weight: 900;
-  font-size: 20px;
+  font-size: 22px;
   color: var(--dark);
-  margin-bottom: 36px;
-  padding-bottom: 16px;
-  border-bottom: 3.5px dashed rgba(45,38,64,0.15);
+  margin-bottom: 40px;
+  padding-bottom: 20px;
+  border-bottom: 3.5px dashed rgba(45,38,64,0.18);
+  letter-spacing: -0.5px;
 }
 .dock-brand em { font-style: normal; color: var(--coral); }
 
-/* 導航按鈕 */
 .dock-menu {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 14px;
   flex: 1;
 }
 .dock-item {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 14px 18px;
+  gap: 14px;
+  padding: 16px 20px;
   border: 2.5px solid var(--dark);
   border-radius: 16px;
   font-weight: 700;
   font-size: 15px;
   color: var(--dark);
   text-decoration: none;
-  background: white;
-  box-shadow: 3px 3px 0 var(--dark);
+  background: var(--bg-card);
+  box-shadow: 3.5px 3.5px 0 var(--dark);
   cursor: pointer;
-  transition: all 0.15s cubic-bezier(0.34,1.56,0.64,1);
+  transition: all 0.2s ease;
 }
 .dock-item:hover {
   transform: translate(-2px, -2px);
-  box-shadow: 5px 5px 0 var(--dark);
-  background: #fffdf9;
+  box-shadow: 5.5px 5.5px 0 var(--dark);
+  background: #FFFDF9;
 }
 .dock-item.active {
   background: var(--yellow);
-  transform: translate(-2px, -2px);
-  box-shadow: 5px 5px 0 var(--dark);
+  transform: translate(-3px, -3px);
+  box-shadow: 6.5px 6.5px 0 var(--dark);
 }
 .dock-item:active {
   transform: translate(1px, 1px);
-  box-shadow: 1px 1px 0 var(--dark);
+  box-shadow: 1.5px 1.5px 0 var(--dark);
 }
 
-.dock-footer {
-  margin-top: auto;
-}
-.logout-btn {
-  background: #FFF0F0;
-  border-color: var(--dark);
-}
-.logout-btn:hover {
-  background: var(--coral);
-  color: white;
-}
+.dock-footer { margin-top: auto; }
+.logout-btn { background: #FFF2F2; border-color: var(--dark); }
+.logout-btn:hover { background: var(--coral); color: white; }
 
-/* ── MAIN CONTENT (右側主畫面) ── */
+/* ── MAIN CONTENT (右側主畫面升級版) ── */
 .main-content {
   flex: 1;
-  padding: 40px 40px 80px;
-  max-width: 1100px;
+  padding: 50px 50px 80px;
+  max-width: 1200px;
   overflow-y: auto;
 }
 
-.welcome-header {
-  margin-bottom: 32px;
-}
-.welcome-header h1 {
-  font-weight: 900;
-  font-size: 32px;
-  margin-bottom: 6px;
-}
-.welcome-header p {
-  color: var(--muted);
-  font-weight: 600;
-}
+.welcome-header { margin-bottom: 36px; }
+.welcome-header h1 { font-weight: 900; font-size: 36px; color: var(--dark); letter-spacing: -0.5px; margin-bottom: 8px; }
+.welcome-header p { color: var(--muted); font-weight: 600; font-size: 15px; }
 
-/* 📊 統計區塊與資料卡片 */
+/* 📊 專業版看板網格配置 */
 .dashboard-grid {
   display: grid;
-  grid-template-columns: 2fr 1fr;
-  gap: 24px;
-  margin-bottom: 40px;
+  grid-template-columns: 2.2fr 1fr;
+  gap: 28px;
+  margin-bottom: 44px;
 }
 
 .stats-container {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 16px;
+  gap: 20px;
 }
 .stat-card {
-  background: white;
+  background: var(--bg-card);
   border: 2.5px solid var(--dark);
   border-radius: 20px;
-  padding: 20px;
-  box-shadow: 4px 4px 0 var(--dark);
+  padding: 24px 20px;
+  box-shadow: 4.5px 4.5px 0 var(--dark);
+  transition: transform 0.2s ease;
 }
-.stat-title {
-  font-size: 13px;
-  font-weight: 700;
-  color: var(--muted);
-  margin-bottom: 6px;
-}
-.stat-value {
-  font-size: 28px;
-  font-weight: 900;
-  color: var(--dark);
-}
+.stat-card:hover { transform: translateY(-2px); }
+.stat-title { font-size: 13px; font-weight: 800; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
+.stat-value { font-size: 32px; font-weight: 900; color: var(--dark); }
 
-/* 用戶個人檔案卡片 */
+/* 高級名片式個人檔案卡 */
 .profile-card {
   background: var(--purple);
   color: white;
   border: 2.5px solid var(--dark);
   border-radius: 20px;
-  padding: 22px;
-  box-shadow: 4px 4px 0 var(--dark);
+  padding: 24px;
+  box-shadow: 4.5px 4.5px 0 var(--dark);
   display: flex;
   flex-direction: column;
   justify-content: center;
+  position: relative;
+  overflow: hidden;
 }
-.profile-info h3 { font-size: 22px; font-weight: 800; margin-bottom: 8px;}
-.profile-badge-row { display: flex; gap: 8px; }
+.profile-card::before {
+  content: '🎵';
+  position: absolute;
+  right: -10px; bottom: -10px;
+  font-size: 80px; opacity: 0.12;
+}
+.profile-info h3 { font-size: 24px; font-weight: 800; margin-bottom: 10px; letter-spacing: -0.5px; }
+.profile-badge-row { display: flex; gap: 10px; }
 .profile-badge {
   background: var(--dark);
   color: white;
-  padding: 4px 12px;
+  padding: 6px 14px;
   border-radius: 999px;
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 700;
-  border: 1px solid white;
+  border: 1.5px solid rgba(25/7,25/7,25/7,0.2);
 }
 
-/* 📋 歷史成績表格樣式 */
+/* 📋 高對比度粗獷表格結構 */
 .section-title {
   font-weight: 800;
-  font-size: 22px;
-  margin-bottom: 16px;
+  font-size: 24px;
+  margin-bottom: 20px;
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
+  color: var(--dark);
 }
 
 .table-wrapper {
-  background: white;
+  background: var(--bg-card);
   border: 3px solid var(--dark);
   border-radius: 20px;
-  box-shadow: 5px 5px 0 var(--dark);
+  box-shadow: 6px 6px 0 var(--dark);
   overflow: hidden;
-  margin-bottom: 40px;
+  margin-bottom: 48px;
 }
-table {
-  width: 100%;
-  border-collapse: collapse;
-  text-align: left;
-}
+table { width: 100%; border-collapse: collapse; text-align: left; }
 th {
-  background: #f8f6f0;
+  background: #F8F6F0;
   border-bottom: 3px solid var(--dark);
-  padding: 14px 20px;
+  padding: 16px 24px;
   font-weight: 800;
-  font-size: 14px;
+  font-size: 15px;
+  color: var(--dark);
 }
 td {
-  padding: 14px 20px;
+  padding: 16px 24px;
   border-bottom: 2px dashed rgba(45,38,64,0.12);
   font-weight: 600;
-  font-size: 14px;
+  font-size: 15px;
 }
 tr:last-child td { border-bottom: none; }
 
-/* 📝 測驗專區選單卡片 */
+/* 📝 測驗專區選單卡片（UI 專業重塑版） */
 .quiz-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-  gap: 20px;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 24px;
 }
 .quiz-card {
-  background: white;
+  background: var(--bg-card);
   border: 2.5px solid var(--dark);
   border-radius: 20px;
-  padding: 24px 20px;
-  box-shadow: 4px 4px 0 var(--dark);
+  padding: 28px 24px;
+  box-shadow: 4.5px 4.5px 0 var(--dark);
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 14px;
   position: relative;
+  transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.quiz-card:hover {
+  transform: translate(-3px, -3px);
+  box-shadow: 7.5px 7.5px 0 var(--dark);
 }
 .quiz-card.highlight::after {
-  content: '🎯 妳的年級專屬';
+  content: '🎯 妳的年級專屬任務';
   position: absolute;
-  top: -12px; right: 12px;
+  top: -13px; right: 14px;
   font-size: 11px;
-  font-weight: 800;
+  font-weight: 900;
   background: var(--coral);
   color: white;
-  padding: 3px 10px;
+  padding: 4px 12px;
   border-radius: 999px;
   border: 2px solid var(--dark);
+  box-shadow: 2px 2px 0 var(--dark);
 }
-.quiz-card h4 { font-size: 18px; font-weight: 800; }
-.quiz-card p { font-size: 13px; color: var(--muted); font-weight: 500; flex: 1; }
+.quiz-card h4 { font-size: 19px; font-weight: 800; color: var(--dark); }
+.quiz-card p { font-size: 14px; color: var(--muted); font-weight: 500; line-height: 1.6; flex: 1; }
+
 .start-quiz-btn {
-  padding: 10px;
+  padding: 12px;
   border: 2px solid var(--dark);
-  border-radius: 12px;
+  border-radius: 14px;
   background: var(--mint);
-  font-weight: 700;
+  font-weight: 800;
   text-align: center;
   text-decoration: none;
   color: var(--dark);
-  box-shadow: 2px 2px 0 var(--dark);
+  box-shadow: 2.5px 2.5px 0 var(--dark);
+  transition: all 0.15s ease;
 }
-.start-quiz-btn:hover { transform: translate(-1px, -1px); box-shadow: 3px 3px 0 var(--dark); }
+.start-quiz-btn:hover {
+  background: #64E3DA;
+  transform: translate(-1px, -1px);
+  box-shadow: 3.5px 3.5px 0 var(--dark);
+}
+.start-quiz-btn:active {
+  transform: translate(1px, 1px);
+  box-shadow: 1px 1px 0 var(--dark);
+}
 
 /* ── RESPONSIVE ── */
-@media (max-width: 900px) {
+@media (max-width: 950px) {
   body { flex-direction: column; }
-  .side-dock { width: 100%; height: auto; border-right: none; border-bottom: 3.5px solid var(--dark); padding: 20px; }
-  .main-content { padding: 24px; }
+  .side-dock { width: 100%; height: auto; border-right: none; border-bottom: 3.5px solid var(--dark); padding: 24px; }
+  .main-content { padding: 30px 24px; }
   .dashboard-grid { grid-template-columns: 1fr; }
 }
 </style>
@@ -281,7 +285,7 @@ tr:last-child td { border-bottom: none; }
     <div class="dock-menu">
       <div class="dock-item active">📊 我的儀表板</div>
       <a href="#quizSection" class="dock-item">📝 進行樂理測驗</a>
-      <a href="index.html" class="dock-item">🏠 返回實驗室首頁</a>
+      <a href="https://missho-music.github.io/music/index.html" class="dock-item"> Hazards 首頁</a>
     </div>
     
     <div class="dock-footer">
@@ -294,8 +298,8 @@ tr:last-child td { border-bottom: none; }
     
     <!-- 歡迎區塊 -->
     <div class="welcome-header">
-      <h1>歡迎來到音樂儀表板，<span id="displayStudentName">同學</span>！</h1>
-      <p>今天也是充滿節奏感的一天，準備好挑戰妳的樂理極限了嗎？</p>
+      <h1>歡迎回來，<span id="displayStudentName">同學</span>！</h1>
+      <p>今天也是充滿律動感的一天，立刻開啟妳的雲端樂理挑戰吧！</p>
     </div>
 
     <!-- 📊 數據與個人檔案區塊 -->
@@ -344,35 +348,35 @@ tr:last-child td { border-bottom: none; }
         </thead>
         <tbody id="scoreTableBody">
           <tr>
-            <td colspan="4" style="text-align: center; color: var(--muted);">正在排譜中... 正在從雲端抓取成績紀錄...</td>
+            <td colspan="4" style="text-align: center; color: var(--muted); padding: 30px;">🎵 正在從雲端實驗室抓取歷史成績單...</td>
           </tr>
         </tbody>
       </table>
     </div>
 
-    <!-- 📝 可進行的測驗專區 -->
+    <!-- 📝 可進行的測驗專區（修正：精準對應實際開發題庫之介紹） -->
     <div class="section-title" id="quizSection">🎯 樂理測驗挑戰區</div>
     <div class="quiz-grid">
       
       <!-- 中一專屬 -->
       <div class="quiz-card" id="quizF1">
-        <h4>中一級：基礎樂理任務</h4>
-        <p>包含基礎音高辨識、基本音符與休止符長度計算，適合中一級同學穩固地基！</p>
-        <a href="quiz-f1.html" class="start-quiz-btn">進入挑戰 🚀</a>
+        <h4>中一級：五線譜與音名辨識</h4>
+        <p>核心任務：精準辨識高音譜號與低音譜號在五線譜「線與間」上的音名（Letter Names），打通核心視譜基礎！</p>
+        <a href="https://missho-music.github.io/music/quiz-f1.html" class="start-quiz-btn">進入挑戰 🚀</a>
       </div>
 
       <!-- 中二專屬 -->
       <div class="quiz-card" id="quizF2">
-        <h4>中二級：調性與節奏進階</h4>
-        <p>探索大調音階、簡易拍號變化以及常見記譜法符號分析，中二級專屬核心測驗！</p>
-        <a href="quiz-f2.html" class="start-quiz-btn">進入挑戰 🚀</a>
+        <h4>中二級：拍號與音符價值計算</h4>
+        <p>核心任務：解鎖 2/4、4/4、6/8、9/8 拍號定義！挑戰基礎音符、進階附點時值換算及全方位拍子裂變規則！</p>
+        <a href="https://missho-music.github.io/music/quiz-f2.html" class="start-quiz-btn">進入挑戰 🚀</a>
       </div>
 
       <!-- 中三專屬 -->
       <div class="quiz-card" id="quizF3">
-        <h4>中三級：和弦與綜合分析</h4>
-        <p>挑戰三和弦結構、音程辨音以及名曲記譜綜合聽音任務，中三級勇者極限關卡！</p>
-        <a href="quiz-f3.html" class="start-quiz-btn">進入挑戰 🚀</a>
+        <h4>中三級：和弦、音程與綜合分析</h4>
+        <p>核心任務：終極大考！深度剖析大/小/增/減三和弦、和弦轉位、高階音程辨識及古典樂句終止式綜合分析！</p>
+        <a href="https://missho-music.github.io/music/quiz-f3.html" class="start-quiz-btn">進入挑戰 🚀</a>
       </div>
 
     </div>
@@ -395,7 +399,6 @@ const firebaseConfig = {
   measurementId: "G-J3CGDLSGZF"
 };
 
-// 初始化
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
@@ -407,9 +410,8 @@ onAuthStateChanged(auth, (user) => {
     loadUserProfile(uid);
     loadStudentScores(uid);
   } else {
-    // 未登入則強制擋牆彈回登入頁面
     alert("請先登入帳號以進入個人儀表板！");
-    window.location.href = "login.html";
+    window.location.href = "https://missho-music.github.io/music/login.html";
   }
 });
 
@@ -419,13 +421,17 @@ function loadUserProfile(uid) {
     if (docSnap.exists()) {
       const data = docSnap.data();
       
-      // 更新畫面的個人檔案資訊
       document.getElementById('displayStudentName').innerText = data.name;
       document.getElementById('cardStudentName').innerText = data.name;
       document.getElementById('badgeGrade').innerText = `年級: ${data.grade || 'N/A'}`;
       document.getElementById('badgeClass').innerText = `班別: ${data.class || 'N/A'} 班`;
       
-      // 🎯 根據學生的年級自動高亮標記對應的卡片！
+      // 清除可能殘留的 highlight 避免快取干擾
+      document.getElementById('quizF1').classList.remove('highlight');
+      document.getElementById('quizF2').classList.remove('highlight');
+      document.getElementById('quizF3').classList.remove('highlight');
+
+      // 🎯 根據學生帳號年級智慧型標記
       if (data.grade === 'F1') document.getElementById('quizF1').classList.add('highlight');
       if (data.grade === 'F2') document.getElementById('quizF2').classList.add('highlight');
       if (data.grade === 'F3') document.getElementById('quizF3').classList.add('highlight');
@@ -433,7 +439,7 @@ function loadUserProfile(uid) {
   });
 }
 
-// 📋 撈取該位學生的歷史小測驗分數並即時計算總體表現
+// 📋 撈取該位學生的歷史小測驗分數
 async function loadStudentScores(uid) {
   const tableBody = document.getElementById('scoreTableBody');
   
@@ -442,7 +448,7 @@ async function loadStudentScores(uid) {
     const querySnapshot = await getDocs(q);
     
     if (querySnapshot.empty) {
-      tableBody.innerHTML = `<tr><td colspan="4" style="text-align: center; color: var(--muted);">尚無歷史挑戰紀錄，快去下方挑戰妳的第一張樂理考卷吧！🚀</td></tr>`;
+      tableBody.innerHTML = `<tr><td colspan="4" style="text-align: center; color: var(--muted); padding: 24px;">尚無歷史挑戰紀錄，快去下方挑戰妳的第一張樂理考卷吧！🚀</td></tr>`;
       return;
     }
     
@@ -480,7 +486,7 @@ async function loadStudentScores(uid) {
     
   } catch (error) {
     console.error("讀取分數失敗: ", error);
-    tableBody.innerHTML = `<tr><td colspan="4" style="text-align: center; color: var(--coral);">歷史分數讀取失敗：需要為 scores 集合建立 Firestore 複合索引。請點擊瀏覽器 F12 查看 Console 的連結前往建立。</td></tr>`;
+    tableBody.innerHTML = `<tr><td colspan="4" style="text-align: center; color: var(--coral); padding: 20px;">歷史分數讀取失敗：需要為 scores 集合建立 Firestore 複合索引。請點擊瀏覽器 F12 查看 Console 的連結前往建立。</td></tr>`;
   }
 }
 
@@ -488,7 +494,7 @@ async function loadStudentScores(uid) {
 window.handleLogout = function() {
   if (confirm("確定要登出 Miss Ho's Music Lab 系統嗎？")) {
     signOut(auth).then(() => {
-      window.location.href = "login.html";
+      window.location.href = "https://missho-music.github.io/music/login.html";
     });
   }
 }
