@@ -205,10 +205,11 @@ body {
     </div>
 
     <div class="options-grid">
-      <button class="option-btn" onclick="submitAnswer(this)">A</button>
-      <button class="option-btn" onclick="submitAnswer(this)">B</button>
-      <button class="option-btn" onclick="submitAnswer(this)">C</button>
-      <button class="option-btn" onclick="submitAnswer(this)">D</button>
+      <!-- 移除了原本的 onclick，改由下方腳本統一監聽 -->
+      <button class="option-btn">A</button>
+      <button class="option-btn">B</button>
+      <button class="option-btn">C</button>
+      <button class="option-btn">D</button>
     </div>
   </div>
 
@@ -217,7 +218,7 @@ body {
     <h2>挑戰完成！</h2>
     <div class="result-score"><span id="finalScore">0</span> 分</div>
     <div class="result-text" id="resultComment">正在將成績安全登錄至 Miss Ho's 雲端資料庫...</div>
-    <button class="action-btn" onclick="goBackDashboard()">傳回我的控制台 📊</button>
+    <button class="action-btn" id="goBackBtn">傳回我的控制台 📊</button>
   </div>
 
 </div>
@@ -324,30 +325,33 @@ function loadQuestion() {
     ledger.style.display = 'none';
   }
   
-  const buttons = document.querySelectorAll('.option-btn');
-  buttons.forEach((btn, idx) => {
+  const optionButtons = document.querySelectorAll('.option-btn');
+  optionButtons.forEach((btn, idx) => {
     btn.innerText = q.options[idx];
   });
 }
 
-window.submitAnswer = function(btn) {
-  const selected = btn.innerText;
-  const correct = questions[currentIndex].answer;
-  
-  if (selected === correct) {
-    correctCount++;
-    document.getElementById('scoreTracker').innerText = `得分: ${correctCount * 10}`;
-  }
-  
-  currentIndex++;
-  
-  if (currentIndex < questions.length) {
-    loadQuestion();
-  } else {
-    clearInterval(timerInterval); 
-    showResults(false);
-  }
-}
+// 加入獨立的按鈕事件監聽器，確保點擊反應不被安全環境阻擋
+document.querySelectorAll('.option-btn').forEach(btn => {
+  btn.addEventListener('click', function(e) {
+    const selected = e.target.innerText;
+    const correct = questions[currentIndex].answer;
+    
+    if (selected === correct) {
+      correctCount++;
+      document.getElementById('scoreTracker').innerText = `得分: ${correctCount * 10}`;
+    }
+    
+    currentIndex++;
+    
+    if (currentIndex < questions.length) {
+      loadQuestion();
+    } else {
+      clearInterval(timerInterval); 
+      showResults(false);
+    }
+  });
+});
 
 async function showResults(isTimeout = false) {
   document.getElementById('quizBody').style.display = 'none';
@@ -399,9 +403,10 @@ async function showResults(isTimeout = false) {
   }
 }
 
-window.goBackDashboard = function() {
+// 結算頁面的返回按鈕監聽
+document.getElementById('goBackBtn').addEventListener('click', () => {
   window.location.href = "quiz.html";
-}
+});
 
 loadQuestion();
 </script>
