@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Miss Ho's Music Lab - 教師控制台 👩‍🏫</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800;900&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+/* 延續原有的色彩與基礎設定 */
+:root {
+  --cream:   #FFFBF2;
+  --yellow:  #FFD94A;
+  --coral:   #FF7B6B;
+  --mint:    #4ECDC4;
+  --purple:  #A78BFA;
+  --blue:    #60A5FA;
+  --dark:    #2D2640;
+  --ink:     #3D3560;
+  --muted:   #8B85A8;
+  --bg-card: #FFFFFF;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track { background: var(--cream); border-left: 2px solid var(--dark); }
+::-webkit-scrollbar-thumb { background: var(--dark); border-radius: 4px; }
+
+body {
+  background: var(--cream);
+  font-family: 'Poppins', 'Noto Sans TC', sans-serif;
+  color: var(--ink);
+  min-height: 100vh;
+  display: flex;
+}
+
+/* ── SIDE DOCK (側邊導航欄) ── */
+.side-dock {
+  width: 290px;
+  background: var(--bg-card);
+  border-right: 3.5px solid var(--dark);
+  display: flex;
+  flex-direction: column;
+  padding: 40px 24px;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  z-index: 10;
+}
+
+.dock-brand {
+  font-family: 'Poppins', sans-serif;
+  font-weight: 900;
+  font-size: 22px;
+  color: var(--dark);
+  margin-bottom: 40px;
+  padding-bottom: 20px;
+  border-bottom: 3.5px dashed rgba(45,38,64,0.18);
+  letter-spacing: -0.5px;
+}
+.dock-brand em { font-style: normal; color: var(--purple); }
+
+.dock-menu {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  flex: 1;
+}
+.dock-item {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 16px 20px;
+  border: 2.5px solid var(--dark);
+  border-radius: 16px;
+  font-weight: 700;
+  font-size: 15px;
+  color: var(--dark);
+  text-decoration: none;
+  background: var(--bg-card);
+  box-shadow: 3.5px 3.5px 0 var(--dark);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.dock-item:hover {
+  transform: translate(-2px, -2px);
+  box-shadow: 5.5px 5.5px 0 var(--dark);
+  background: #FFFDF9;
+}
+.dock-item.active {
+  background: var(--purple);
+  color: white;
+  transform: translate(-3px, -3px);
+  box-shadow: 6.5px 6.5px 0 var(--dark);
+}
+
+.dock-footer { margin-top: auto; }
+.logout-btn { background: #FFF2F2; border-color: var(--dark); color: var(--dark); }
+.logout-btn:hover { background: var(--coral); color: white; }
+
+/* ── MAIN CONTENT (右側主畫面) ── */
+.main-content {
+  flex: 1;
+  padding: 50px 50px 80px;
+  max-width: 1200px;
+  overflow-y: auto;
+}
+
+.welcome-header { margin-bottom: 36px; display: flex; justify-content: space-between; align-items: flex-end; }
+.welcome-header h1 { font-weight: 900; font-size: 36px; color: var(--dark); letter-spacing: -0.5px; margin-bottom: 8px; }
+.welcome-header p { color: var(--muted); font-weight: 600; font-size: 15px; }
+
+/* 📊 數據統計區塊 */
+.stats-container {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+  margin-bottom: 44px;
+}
+.stat-card {
+  background: var(--bg-card);
+  border: 2.5px solid var(--dark);
+  border-radius: 20px;
+  padding: 24px 20px;
+  box-shadow: 4.5px 4.5px 0 var(--dark);
+  transition: transform 0.2s ease;
+}
+.stat-card:hover { transform: translateY(-2px); }
+.stat-title { font-size: 13px; font-weight: 800; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
+.stat-value { font-size: 32px; font-weight: 900; color: var(--dark); }
+
+/* 📋 學生列表與篩選控制區 */
+.controls-bar {
+  display: flex;
+  gap: 15px;
+  margin-bottom: 20px;
+  align-items: center;
+}
+select.filter-select {
+  padding: 12px 16px;
+  border: 2.5px solid var(--dark);
+  border-radius: 12px;
+  font-family: inherit;
+  font-weight: 700;
+  font-size: 14px;
+  background: var(--bg-card);
+  box-shadow: 3px 3px 0 var(--dark);
+  cursor: pointer;
+  outline: none;
+}
+.section-title {
+  font-weight: 800;
+  font-size: 24px;
+  color: var(--dark);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* 高對比表格 */
+.table-wrapper {
+  background: var(--bg-card);
+  border: 3px solid var(--dark);
+  border-radius: 20px;
+  box-shadow: 6px 6px 0 var(--dark);
+  overflow: hidden;
+  margin-bottom: 48px;
+}
+table { width: 100%; border-collapse: collapse; text-align: left; }
+th {
+  background: #F8F6F0;
+  border-bottom: 3px solid var(--dark);
+  padding: 16px 24px;
+  font-weight: 800;
+  font-size: 15px;
+  color: var(--dark);
+}
+td {
+  padding: 16px 24px;
+  border-bottom: 2px dashed rgba(45,38,64,0.12);
+  font-weight: 600;
+  font-size: 14.5px;
+}
+tr:last-child td { border-bottom: none; }
+tr:hover td { background: rgba(0,0,0,0.02); }
+
+/* 狀態標籤 */
+.status-badge {
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 800;
+  border: 2px solid var(--dark);
+  display: inline-block;
+}
+.status-good { background: var(--mint); color: var(--dark); }
+.status-warning { background: var(--yellow); color: var(--dark); }
+.status-danger { background: var(--coral); color: white; }
+
+@media (max-width: 950px) {
+  body { flex-direction: column; }
+  .side-dock { width: 100%; height: auto; border-right: none; border-bottom: 3.5px solid var(--dark); padding: 24px; }
+  .main-content { padding: 30px 24px; }
+  .stats-container { grid-template-columns: 1fr; }
+  .controls-bar { flex-direction: column; align-items: stretch; }
+}
+</style>
+</head>
+<body>
+
+  <!-- ── 側邊控制台 ── -->
+  <div class="side-dock">
+    <div class="dock-brand">Miss <em>Ho's</em> Lab 👩‍🏫</div>
+    
+    <div class="dock-menu">
+      <div class="dock-item active">📊 班級總覽看板</div>
+      <a href="#" class="dock-item">📝 考卷與題庫管理</a>
+      <a href="#" class="dock-item">🛍️ 商店道具設定</a>
+      <a href="https://missho-music.github.io/music/index.html" class="dock-item">🏠 回到首頁</a>
+    </div>
+    
+    <div class="dock-footer">
+      <button class="dock-item logout-btn" onclick="handleLogout()">🚪 登出系統</button>
+    </div>
+  </div>
+
+  <!-- ── 右側主畫面 ── -->
+  <div class="main-content">
+    
+    <div class="welcome-header">
+      <div>
+        <h1>教師主控台 🎛️</h1>
+        <p>掌握全校學生的學習進度，找出需要音樂魔法救援的同學！</p>
+      </div>
+    </div>
+
+    <!-- 📊 數據統計區塊 -->
+    <div class="stats-container">
+      <div class="stat-card" style="border-top: 6px solid var(--purple)">
+        <div class="stat-title">總註冊學生人數</div>
+        <div class="stat-value" id="totalStudents">0 人</div>
+      </div>
+      <div class="stat-card" style="border-top: 6px solid var(--mint)">
+        <div class="stat-title">全校平均成績</div>
+        <div class="stat-value" id="globalAvgScore">0 分</div>
+      </div>
+      <div class="stat-card" style="border-top: 6px solid var(--coral)">
+        <div class="stat-title">急需協助學生數</div>
+        <div class="stat-value" id="needsHelpCount">0 人</div>
+      </div>
+    </div>
+
+    <!-- 📋 學生列表 -->
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+      <div class="section-title">🧑‍🎓 學生學習狀況總表</div>
+      <div class="controls-bar">
+        <select class="filter-select" id="gradeFilter" onchange="filterTable()">
+          <option value="all">所有年級 (All)</option>
+          <option value="F1">中一 (F1)</option>
+          <option value="F2">中二 (F2)</option>
+          <option value="F3">中三 (F3)</option>
+        </select>
+        <select class="filter-select" id="statusFilter" onchange="filterTable()">
+          <option value="all">所有狀態</option>
+          <option value="danger">🚨 需要幫忙 (低於60分)</option>
+          <option value="good">🌟 學習優良 (80分以上)</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>姓名</th>
+            <th>班級</th>
+            <th>遊戲等級</th>
+            <th>測驗次數</th>
+            <th>平均分數</th>
+            <th>學習狀態</th>
+          </tr>
+        </thead>
+        <tbody id="studentsTableBody">
+          <tr>
+            <td colspan="6" style="text-align: center; color: var(--muted); padding: 30px;">🎵 正在從雲端實驗室彙整全校資料...</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+  </div>
+
+<!-- 載入 Firebase 服務 -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDMIul1XcWHOk45JWXh-xcD8nASQW08hNc",
+  authDomain: "music-missho.firebaseapp.com",
+  projectId: "music-missho",
+  storageBucket: "music-missho.firebasestorage.app",
+  messagingSenderId: "542029036241",
+  appId: "1:542029036241:web:2275f6e6c7c9685fb763f0",
+  measurementId: "G-J3CGDLSGZF"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+// 存放所有抓取下來的學生合併資料
+let allStudentsData = [];
+
+onAuthStateChanged(auth, (user) => {
+  if (user) {
+    // 實務上這裡可以檢查 user.uid 是否屬於老師名單
+    loadAllData();
+  } else {
+    alert("請先登入老師帳號！");
+    window.location.href = "https://missho-music.github.io/music/login.html";
+  }
+});
+
+async function loadAllData() {
+  try {
+    // 1. 抓取所有學生 (users 集合)
+    const usersSnap = await getDocs(collection(db, "users"));
+    let usersDict = {};
+    usersSnap.forEach(doc => {
+      // 排除可能的系統測試帳號或老師自己，如果有特別 role 欄位可以加在這
+      usersDict[doc.id] = { uid: doc.id, ...doc.data(), totalScore: 0, quizCount: 0 };
+    });
+
+    // 2. 抓取所有測驗成績 (scores 集合)
+    const scoresSnap = await getDocs(collection(db, "scores"));
+    let globalTotalScore = 0;
+    let globalTotalQuizzes = 0;
+
+    scoresSnap.forEach(doc => {
+      const scoreData = doc.data();
+      const studentUid = scoreData.uid;
+      if (usersDict[studentUid]) {
+        usersDict[studentUid].totalScore += scoreData.score || 0;
+        usersDict[studentUid].quizCount += 1;
+        
+        globalTotalScore += scoreData.score || 0;
+        globalTotalQuizzes += 1;
+      }
+    });
+
+    // 3. 計算並轉換為陣列方便排序與篩選
+    let totalStudentsCount = 0;
+    let needsHelpCount = 0;
+
+    for (const uid in usersDict) {
+      let student = usersDict[uid];
+      student.avgScore = student.quizCount > 0 ? Math.round(student.totalScore / student.quizCount) : 0;
+      
+      // 判定狀態
+      if (student.quizCount === 0) {
+        student.status = "warning";
+        student.statusText = "⚠️ 尚未測驗";
+      } else if (student.avgScore < 60) {
+        student.status = "danger";
+        student.statusText = "🚨 需加強輔導";
+        needsHelpCount++;
+      } else if (student.avgScore >= 80) {
+        student.status = "good";
+        student.statusText = "🌟 表現優異";
+      } else {
+        student.status = "normal";
+        student.statusText = "✅ 穩定學習中";
+      }
+
+      totalStudentsCount++;
+      allStudentsData.push(student);
+    }
+
+    // 依班級排序為預設
+    allStudentsData.sort((a, b) => (a.grade + a.class).localeCompare(b.grade + b.class));
+
+    // 4. 更新頂部統計數據
+    document.getElementById('totalStudents').innerText = `${totalStudentsCount} 人`;
+    document.getElementById('globalAvgScore').innerText = globalTotalQuizzes > 0 ? `${Math.round(globalTotalScore / globalTotalQuizzes)} 分` : `0 分`;
+    document.getElementById('needsHelpCount').innerText = `${needsHelpCount} 人`;
+
+    // 5. 渲染表格
+    renderTable(allStudentsData);
+
+  } catch (error) {
+    console.error("載入資料失敗:", error);
+    document.getElementById('studentsTableBody').innerHTML = `<tr><td colspan="6" style="text-align: center; color: var(--coral);">資料庫讀取錯誤，請確認網路連線與權限。</td></tr>`;
+  }
+}
+
+// 渲染表格函式
+function renderTable(dataArray) {
+  const tbody = document.getElementById('studentsTableBody');
+  tbody.innerHTML = '';
+
+  if (dataArray.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: var(--muted);">查無符合條件的學生資料。</td></tr>`;
+    return;
+  }
+
+  dataArray.forEach(student => {
+    // 遊戲等級計算公式 (沿用原學生版面)
+    const exp = student.exp || 0;
+    const level = Math.floor(exp / 200) + 1;
+
+    let badgeClass = "status-badge";
+    if (student.status === "good") badgeClass += " status-good";
+    else if (student.status === "warning") badgeClass += " status-warning";
+    else if (student.status === "danger") badgeClass += " status-danger";
+    else badgeClass += " style='background:#F1F1F1; color:var(--dark);'";
+
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td style="font-weight: 800; color: var(--purple);">${student.name || '未命名'}</td>
+      <td>${student.grade || '-'} / ${student.class || '-'}班</td>
+      <td>Lv.${level} (${exp} EXP)</td>
+      <td>${student.quizCount} 次</td>
+      <td style="font-weight: 800;">${student.quizCount > 0 ? student.avgScore + ' 分' : '-'}</td>
+      <td><span class="${badgeClass}">${student.statusText}</span></td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+// 篩選功能暴露給全域環境
+window.filterTable = function() {
+  const gradeFilter = document.getElementById('gradeFilter').value;
+  const statusFilter = document.getElementById('statusFilter').value;
+
+  const filteredData = allStudentsData.filter(student => {
+    let passGrade = gradeFilter === 'all' || student.grade === gradeFilter;
+    let passStatus = true;
+    
+    if (statusFilter === 'danger') passStatus = (student.status === 'danger');
+    if (statusFilter === 'good') passStatus = (student.status === 'good');
+    
+    return passGrade && passStatus;
+  });
+
+  renderTable(filteredData);
+}
+
+// 登出功能
+window.handleLogout = function() {
+  if (confirm("確定要登出教師系統嗎？")) {
+    signOut(auth).then(() => {
+      window.location.href = "https://missho-music.github.io/music/login.html";
+    });
+  }
+}
+</script>
+</body>
+</html>
