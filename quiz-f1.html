@@ -242,7 +242,7 @@ body {
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-// ⚡ 關鍵升級：導入角色金幣數據所需的原子更新工具 doc, updateDoc, increment
+// 🔒 安全升級：精準導入更新雲端金幣背包所需的核心工具
 import { getFirestore, collection, doc, updateDoc, increment, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -376,7 +376,7 @@ window.submitAnswer = function(btn) {
   }
 }
 
-// 統計並儲存到 Firebase (合體升級版：納入金幣與經驗值發放)
+// 統計並儲存到 Firebase (整合發放金幣與經驗值)
 async function showResults(isTimeout = false) {
   document.getElementById('quizBody').style.display = 'none';[cite: 3]
   document.getElementById('resultBody').style.display = 'block';[cite: 3]
@@ -384,7 +384,7 @@ async function showResults(isTimeout = false) {
   const finalScore = correctCount * 10;[cite: 3]
   document.getElementById('finalScore').innerText = finalScore;[cite: 3]
   
-  // 🎮 遊戲化獎勵演算法：拿幾分就送多少金幣與經驗值！
+  // 🎮 遊戲化獎勵算法：拿幾分就送多少金幣與經驗值！
   const goldEarned = finalScore;
   const expEarned = finalScore;
   
@@ -416,7 +416,6 @@ async function showResults(isTimeout = false) {
         totalQuestions: 10,[cite: 3]
         timestamp: serverTimestamp()[cite: 3]
       });
-      console.log("成績已成功登載至雲端資料庫。");[cite: 3]
 
       // 2. ⚡ 角色賬戶加碼：將金幣與經驗值即時疊加累積至使用者資料檔案中
       const userRef = doc(db, 'users', currentUid);
@@ -424,7 +423,7 @@ async function showResults(isTimeout = false) {
         gold: increment(goldEarned),
         exp: increment(expEarned)
       });
-      console.log(`[Lab 廣播] 雲端帳戶加碼成功！金幣 +${goldEarned}，經驗值 +${expEarned}。`);
+      console.log(`[Lab 廣播] 雲端帳戶更新成功！金幣 +${goldEarned}，經驗值 +${expEarned}。`);
       
     } catch (e) {
       console.error("寫入分數或加載雲端帳戶失敗: ", e);[cite: 3]
