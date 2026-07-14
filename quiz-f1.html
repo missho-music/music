@@ -43,7 +43,6 @@ body {
   position: relative;
 }
 
-/* 進度條與計時器樣式 */
 .progress-wrapper {
   margin-bottom: 24px;
 }
@@ -80,7 +79,6 @@ body {
   transition: width 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
-/* 題目展示區 */
 .question-box {
   text-align: center;
   margin-bottom: 28px;
@@ -104,7 +102,6 @@ body {
 .clef-badge.treble { background: var(--yellow); }
 .clef-badge.bass { background: var(--blue); color: white; }
 
-/* 🎼 SVG 五線譜精準排版區 */
 .staff-wrapper {
   background: #FCFBF7;
   border: 2.5px solid var(--dark);
@@ -116,7 +113,6 @@ body {
   justify-content: center;
 }
 
-/* 選項按鈕區 */
 .options-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
@@ -144,7 +140,6 @@ body {
   box-shadow: 1px 1px 0 var(--dark);
 }
 
-/* 結算畫面 */
 .result-box {
   display: none;
   text-align: center;
@@ -175,9 +170,7 @@ body {
 
 <div class="quiz-container">
   
-  <!-- 📝 測驗主體區塊 -->
   <div id="quizBody">
-    <!-- 進度條與計時器 -->
     <div class="progress-wrapper">
       <div class="progress-text">
         <span id="questionNum">任務第 1 / 10 題</span>
@@ -189,36 +182,28 @@ body {
       </div>
     </div>
 
-    <!-- 題目資訊 -->
     <div class="question-box">
       <div class="question-title">
         <span id="clefBadge" class="clef-badge treble">高音譜號</span>
         <span>請辨認五線譜上的音名是什麼？</span>
       </div>
       
-      <!-- 向量五線譜核心渲染區 -->
       <div class="staff-wrapper">
         <svg width="300" height="150" id="staffSvg" viewBox="0 0 300 150">
-          <!-- 繪製基礎五線譜 (間距15px，y=35, 50, 65, 80, 95)[cite: 3] -->
           <line x1="10" y1="35" x2="290" y2="35" stroke="#2D2640" stroke-width="2.5"/>
           <line x1="10" y1="50" x2="290" y2="50" stroke="#2D2640" stroke-width="2.5"/>
           <line x1="10" y1="65" x2="290" y2="65" stroke="#2D2640" stroke-width="2.5"/>
           <line x1="10" y1="80" x2="290" y2="80" stroke="#2D2640" stroke-width="2.5"/>
           <line x1="10" y1="95" x2="290" y2="95" stroke="#2D2640" stroke-width="2.5"/>
 
-          <!-- 譜號文字符號 (由 JS 動態校正坐標與字型大小)[cite: 3] -->
           <text x="15" y="105" font-size="75" id="svgClef" font-family="serif" fill="#2D2640">𝄞</text>
 
-          <!-- 加線 Ledger Line[cite: 3] -->
           <line x1="135" y1="110" x2="175" y2="110" stroke="#2D2640" stroke-width="2.5" id="svgLedger"/>
-
-          <!-- 核心音符橢圓形[cite: 3] -->
           <ellipse cx="155" cy="110" rx="11" ry="8" transform="rotate(-15 155 110)" fill="#2D2640" id="svgNote"/>
         </svg>
       </div>
     </div>
 
-    <!-- 四選一選項區 -->
     <div class="options-grid">
       <button class="option-btn" onclick="submitAnswer(this)">A</button>
       <button class="option-btn" onclick="submitAnswer(this)">B</button>
@@ -227,7 +212,6 @@ body {
     </div>
   </div>
 
-  <!-- 🎉 挑戰完成結算區塊 -->
   <div class="result-box" id="resultBody">
     <div class="result-emoji" id="resultEmoji">🏆</div>
     <h2>挑戰完成！</h2>
@@ -242,7 +226,6 @@ body {
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-// 🔒 安全升級：精準導入更新雲端金幣背包所需的核心工具
 import { getFirestore, collection, doc, updateDoc, increment, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -261,163 +244,148 @@ const db = getFirestore(app);
 
 let currentUid = null;
 let timerInterval = null;
-let timeLeft = 180; // 3分鐘 = 180秒[cite: 3]
+let timeLeft = 180; 
 
-// 驗證使用者登入狀態[cite: 3]
 onAuthStateChanged(auth, (user) => {
   if (user) {
-    currentUid = user.uid;[cite: 3]
-    startTimer(); // 確保玩家登入後才開啟計時器[cite: 3]
+    currentUid = user.uid;
+    startTimer();
   } else {
-    alert("請先登入帳號後再進行樂理測驗！");[cite: 3]
-    window.location.href = "login.html";[cite: 3]
+    alert("請先登入帳號後再進行樂理測驗！");
+    window.location.href = "login.html";
   }
 });
 
-// ⏱️ 倒數計時器邏輯[cite: 3]
 function startTimer() {
-  timerInterval = setInterval(() => {[cite: 3]
-    timeLeft--;[cite: 3]
+  timerInterval = setInterval(() => {
+    timeLeft--;
     
-    // 轉換為分:秒格式[cite: 3]
-    const minutes = Math.floor(timeLeft / 60).toString().padStart(2, '0');[cite: 3]
-    const seconds = (timeLeft % 60).toString().padStart(2, '0');[cite: 3]
-    document.getElementById('timerDisplay').innerText = `⏱️ ${minutes}:${seconds}`;[cite: 3]
+    const minutes = Math.floor(timeLeft / 60).toString().padStart(2, '0');
+    const seconds = (timeLeft % 60).toString().padStart(2, '0');
+    document.getElementById('timerDisplay').innerText = `⏱️ ${minutes}:${seconds}`;
     
-    // 時間到，強制收卷[cite: 3]
-    if (timeLeft <= 0) {[cite: 3]
-      clearInterval(timerInterval);[cite: 3]
-      alert("時間到！系統已為妳自動提交考卷。");[cite: 3]
-      showResults(true); // 傳入 true 代表逾時收卷[cite: 3]
+    if (timeLeft <= 0) {
+      clearInterval(timerInterval);
+      alert("時間到！系統已為妳自動提交考卷。");
+      showResults(true); 
     }
-  }, 1000);[cite: 3]
+  }, 1000);
 }
 
-// 🎼 精密修正後的 10 題坐標庫 (基準五線譜線條 y = 35, 50, 65, 80, 95)[cite: 3]
 const questions = [
-  { clef: 'treble', label: '高音譜號', symbol: '𝄞', y: 110, ledger: true,  answer: 'C', options: ['C', 'D', 'E', 'F'] }, // 下加一線 C[cite: 3]
-  { clef: 'treble', label: '高音譜號', symbol: '𝄞', y: 80,  ledger: false, answer: 'G', options: ['E', 'F', 'G', 'A'] }, // 第二線 G[cite: 3]
-  { clef: 'treble', label: '高音譜號', symbol: '𝄞', y: 35,  ledger: false, answer: 'F', options: ['E', 'F', 'G', 'B'] }, // 第五線 F[cite: 3]
-  { clef: 'bass',   label: '低音譜號', symbol: '𝄢', y: 72.5,ledger: false, answer: 'C', options: ['A', 'B', 'C', 'D'] }, // 第二間 C[cite: 3]
-  { clef: 'bass',   label: '低音譜號', symbol: '𝄢', y: 95,  ledger: false, answer: 'G', options: ['F', 'G', 'A', 'B'] }, // 第一線 G[cite: 3]
-  { clef: 'treble', label: '高音譜號', symbol: '𝄞', y: 95,  ledger: false, answer: 'E', options: ['C', 'D', 'E', 'F'] }, // 第一線 E[cite: 3]
-  { clef: 'treble', label: '高音譜號', symbol: '𝄞', y: 72.5,ledger: false, answer: 'A', options: ['G', 'A', 'B', 'C'] }, // 第二間 A[cite: 3]
-  { clef: 'bass',   label: '低音譜號', symbol: '𝄢', y: 50,  ledger: false, answer: 'F', options: ['D', 'E', 'F', 'G'] }, // 第四線 F[cite: 3]
-  { clef: 'bass',   label: '低音譜號', symbol: '𝄢', y: 57.5,ledger: false, answer: 'E', options: ['C', 'D', 'E', 'F'] }, // 第三間 E[cite: 3]
-  { clef: 'treble', label: '高音譜號', symbol: '𝄞', y: 65,  ledger: false, answer: 'B', options: ['A', 'B', 'C', 'D'] }  // 第三線 B[cite: 3]
+  { clef: 'treble', label: '高音譜號', symbol: '𝄞', y: 110, ledger: true,  answer: 'C', options: ['C', 'D', 'E', 'F'] }, 
+  { clef: 'treble', label: '高音譜號', symbol: '𝄞', y: 80,  ledger: false, answer: 'G', options: ['E', 'F', 'G', 'A'] }, 
+  { clef: 'treble', label: '高音譜號', symbol: '𝄞', y: 35,  ledger: false, answer: 'F', options: ['E', 'F', 'G', 'B'] }, 
+  { clef: 'bass',   label: '低音譜號', symbol: '𝄢', y: 72.5,ledger: false, answer: 'C', options: ['A', 'B', 'C', 'D'] }, 
+  { clef: 'bass',   label: '低音譜號', symbol: '𝄢', y: 95,  ledger: false, answer: 'G', options: ['F', 'G', 'A', 'B'] }, 
+  { clef: 'treble', label: '高音譜號', symbol: '𝄞', y: 95,  ledger: false, answer: 'E', options: ['C', 'D', 'E', 'F'] }, 
+  { clef: 'treble', label: '高音譜號', symbol: '𝄞', y: 72.5,ledger: false, answer: 'A', options: ['G', 'A', 'B', 'C'] }, 
+  { clef: 'bass',   label: '低音譜號', symbol: '𝄢', y: 50,  ledger: false, answer: 'F', options: ['D', 'E', 'F', 'G'] }, 
+  { clef: 'bass',   label: '低音譜號', symbol: '𝄢', y: 57.5,ledger: false, answer: 'E', options: ['C', 'D', 'E', 'F'] }, 
+  { clef: 'treble', label: '高音譜號', symbol: '𝄞', y: 65,  ledger: false, answer: 'B', options: ['A', 'B', 'C', 'D'] }  
 ];
 
-let currentIndex = 0;[cite: 3]
-let correctCount = 0;[cite: 3]
+let currentIndex = 0;
+let correctCount = 0;
 
 function loadQuestion() {
-  const q = questions[currentIndex];[cite: 3]
+  const q = questions[currentIndex];
   
-  document.getElementById('questionNum').innerText = `任務第 ${currentIndex + 1} / 10 題`;[cite: 3]
-  document.getElementById('progressBar').style.width = `${(currentIndex + 1) * 10}%`;[cite: 3]
+  document.getElementById('questionNum').innerText = `任務第 ${currentIndex + 1} / 10 題`;
+  document.getElementById('progressBar').style.width = `${(currentIndex + 1) * 10}%`;
   
-  const badge = document.getElementById('clefBadge');[cite: 3]
-  badge.innerText = q.label;[cite: 3]
-  badge.className = `clef-badge ${q.clef}`;[cite: 3]
+  const badge = document.getElementById('clefBadge');
+  badge.innerText = q.label;
+  badge.className = `clef-badge ${q.clef}`;
   
-  const clefText = document.getElementById('svgClef');[cite: 3]
-  clefText.innerHTML = q.symbol;[cite: 3]
+  const clefText = document.getElementById('svgClef');
+  clefText.innerHTML = q.symbol;
   
-  // 🎯 核心修正：針對高低音譜號不同的字型基準線進行精確位移與縮放調整[cite: 3]
   if (q.clef === 'bass') {
-    clefText.setAttribute('font-size', '60');[cite: 3]
-    clefText.setAttribute('x', '15');[cite: 3]
-    clefText.setAttribute('y', '62'); // 使低音譜號大頭處在第四線(50px)，兩點包夾第四線[cite: 3]
+    clefText.setAttribute('font-size', '60');
+    clefText.setAttribute('x', '15');
+    clefText.setAttribute('y', '62'); 
   } else {
-    clefText.setAttribute('font-size', '75');[cite: 3]
-    clefText.setAttribute('x', '15');[cite: 3]
-    clefText.setAttribute('y', '106'); // 使高音譜號下環貼緊底線，中心環繞第二線(80px)[cite: 3]
+    clefText.setAttribute('font-size', '75');
+    clefText.setAttribute('x', '15');
+    clefText.setAttribute('y', '106'); 
   }
   
-  // 調整音符橢圓形的 Y 軸高度與旋轉中心點[cite: 3]
-  const note = document.getElementById('svgNote');[cite: 3]
-  note.setAttribute('cy', q.y);[cite: 3]
-  note.setAttribute('transform', `rotate(-15 155 ${q.y})`);[cite: 3]
+  const note = document.getElementById('svgNote');
+  note.setAttribute('cy', q.y);
+  note.setAttribute('transform', `rotate(-15 155 ${q.y})`);
   
-  // 判斷是否需要繪製中央 C 的下加線[cite: 3]
-  const ledger = document.getElementById('svgLedger');[cite: 3]
-  if (q.ledger) {[cite: 3]
-    ledger.style.display = 'block';[cite: 3]
-    ledger.setAttribute('y1', q.y);[cite: 3]
-    ledger.setAttribute('y2', q.y);[cite: 3]
+  const ledger = document.getElementById('svgLedger');
+  if (q.ledger) {
+    ledger.style.display = 'block';
+    ledger.setAttribute('y1', q.y);
+    ledger.setAttribute('y2', q.y);
   } else {
-    ledger.style.display = 'none';[cite: 3]
+    ledger.style.display = 'none';
   }
   
-  // 渲染按鈕文字[cite: 3]
-  const buttons = document.querySelectorAll('.option-btn');[cite: 3]
+  const buttons = document.querySelectorAll('.option-btn');
   buttons.forEach((btn, idx) => {
-    btn.innerText = q.options[idx];[cite: 3]
+    btn.innerText = q.options[idx];
   });
 }
 
-// 監聽按鈕點擊作答[cite: 3]
 window.submitAnswer = function(btn) {
-  const selected = btn.innerText;[cite: 3]
-  const correct = questions[currentIndex].answer;[cite: 3]
+  const selected = btn.innerText;
+  const correct = questions[currentIndex].answer;
   
-  if (selected === correct) {[cite: 3]
-    correctCount++;[cite: 3]
-    document.getElementById('scoreTracker').innerText = `得分: ${correctCount * 10}`;[cite: 3]
+  if (selected === correct) {
+    correctCount++;
+    document.getElementById('scoreTracker').innerText = `得分: ${correctCount * 10}`;
   }
   
-  currentIndex++;[cite: 3]
+  currentIndex++;
   
-  if (currentIndex < questions.length) {[cite: 3]
-    loadQuestion();[cite: 3]
+  if (currentIndex < questions.length) {
+    loadQuestion();
   } else {
-    clearInterval(timerInterval); // 正常答完，關閉計時器[cite: 3]
-    showResults(false);[cite: 3]
+    clearInterval(timerInterval); 
+    showResults(false);
   }
 }
 
-// 統計並儲存到 Firebase (整合發放金幣與經驗值)
 async function showResults(isTimeout = false) {
-  document.getElementById('quizBody').style.display = 'none';[cite: 3]
-  document.getElementById('resultBody').style.display = 'block';[cite: 3]
+  document.getElementById('quizBody').style.display = 'none';
+  document.getElementById('resultBody').style.display = 'block';
   
-  const finalScore = correctCount * 10;[cite: 3]
-  document.getElementById('finalScore').innerText = finalScore;[cite: 3]
+  const finalScore = correctCount * 10;
+  document.getElementById('finalScore').innerText = finalScore;
   
-  // 🎮 遊戲化獎勵算法：拿幾分就送多少金幣與經驗值！
   const goldEarned = finalScore;
   const expEarned = finalScore;
   
   if (isTimeout) {
-    document.getElementById('resultEmoji').innerText = '⏰';[cite: 3]
+    document.getElementById('resultEmoji').innerText = '⏰';
     document.getElementById('resultComment').innerText = `時間到了！但妳的努力已成功登記至系統並換算為 ${goldEarned} 金幣與 ${expEarned} 經驗值！`;
   } else {
     if (finalScore >= 80) {
-      document.getElementById('resultEmoji').innerText = '🏆';[cite: 3]
+      document.getElementById('resultEmoji').innerText = '🏆';
       document.getElementById('resultComment').innerText = `太完美了！成功斬獲 ${goldEarned} 金幣與 ${expEarned} 經驗值！🎶`;
     } else if (finalScore >= 60) {
-      document.getElementById('resultEmoji').innerText = '👍';[cite: 3]
+      document.getElementById('resultEmoji').innerText = '👍';
       document.getElementById('resultComment').innerText = `很不錯！順利贏得 ${goldEarned} 金幣與 ${expEarned} 經驗值！`;
     } else {
-      document.getElementById('resultEmoji').innerText = '💪';[cite: 3]
+      document.getElementById('resultEmoji').innerText = '💪';
       document.getElementById('resultComment').innerText = `再接再厲！本次獲得 ${goldEarned} 金幣與 ${expEarned} 經驗值，多挑戰幾次賺更多！`;
     }
   }
 
-  // 將數據安全儲存回 Firestore 集合中
   if (currentUid) {
     try {
-      // 1. 紀錄單次測驗歷史分數
       await addDoc(collection(db, "scores"), {
-        uid: currentUid,[cite: 3]
+        uid: currentUid,
         quizName: "中一級：五線譜與音名辨識",
-        score: finalScore,[cite: 3]
-        correctAnswers: correctCount,[cite: 3]
-        totalQuestions: 10,[cite: 3]
-        timestamp: serverTimestamp()[cite: 3]
+        score: finalScore,
+        correctAnswers: correctCount,
+        totalQuestions: 10,
+        timestamp: serverTimestamp()
       });
 
-      // 2. ⚡ 角色賬戶加碼：將金幣與經驗值即時疊加累積至使用者資料檔案中
       const userRef = doc(db, 'users', currentUid);
       await updateDoc(userRef, {
         gold: increment(goldEarned),
@@ -426,18 +394,16 @@ async function showResults(isTimeout = false) {
       console.log(`[Lab 廣播] 雲端帳戶更新成功！金幣 +${goldEarned}，經驗值 +${expEarned}。`);
       
     } catch (e) {
-      console.error("寫入分數或加載雲端帳戶失敗: ", e);[cite: 3]
+      console.error("寫入分數或加載雲端帳戶失敗: ", e);
     }
   }
 }
 
-// 跳轉回個人儀表板[cite: 3]
 window.goBackDashboard = function() {
-  window.location.href = "quiz.html";[cite: 3]
+  window.location.href = "quiz.html";
 }
 
-// 初始化首發載入題庫[cite: 3]
-loadQuestion();[cite: 3]
+loadQuestion();
 </script>
 
 </body>
