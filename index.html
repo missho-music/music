@@ -439,25 +439,29 @@ footer span { color: var(--coral); }
     </div>
   </div>
 
-  <!-- COMPUTER SECTION -->
+<!-- COMPUTER SECTION -->
   <div class="section">
     <div class="section-header">
       <div class="section-tag comp">💻 電腦 Computer</div>
       <div class="section-line"></div>
-<a class="card comp-card" href="https://scratch.mit.edu/" target="_blank">
+    </div> <!-- 💡 這裡要先關閉 section-header -->
+    
+    <div class="cards"> <!-- 💡 這裡必須要有 cards 容器，卡片才會並排 -->
+      <a class="card comp-card" href="https://scratch.mit.edu/" target="_blank">
         <div class="card-emoji">🧩</div>
         <div class="card-title">Scratch 積木編程</div>
         <div class="card-desc">學習基本程式邏輯，用積木砌出你的第一個互動故事。</div>
         <div class="card-tag comp-tag">💻 編程入門</div>
         <div class="card-arrow">→</div>
       </a>
+      
       <div class="card comp-card coming-soon">
         <div class="card-emoji">🤖</div>
         <div class="card-title">AI 體驗工作坊</div>
         <div class="card-desc">認識人工智能，了解 AI 如何應用在日常生活和音樂創作中。</div>
         <div class="card-tag comp-tag">💻 人工智能</div>
       </div>
-    </div>
+    </div> <!-- 💡 關閉 cards 容器 -->
   </div>
 
 </div>
